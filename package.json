@@ -2,7 +2,7 @@
   "name": "typescript-express-openapi",
   "version": "1.0.0",
   "description": "Typescript express OpenAPI helper",
-  "main": "./lib/index.js",
+  "main": "lib/index.js",
   "files": [
     "lib"
   ],
