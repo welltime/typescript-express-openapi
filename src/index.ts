@@ -1,4 +1,4 @@
-import Express from 'express'
+import Express, { query } from 'express'
 import multer from 'multer';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
 
@@ -137,7 +137,7 @@ export class ApiHelper {
                 let i: any;
                 for (i in parameters.body_params) {
                     let body_param = parameters.body_params[i];
-                    if (!req?.body?.hasOwnProperty(body_param.name)) {
+                    if (!Object.keys(req.body).includes(body_param.name)) {
                         if (body_param.required) {
                             return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
                         }
@@ -147,7 +147,7 @@ export class ApiHelper {
                 }
                 for (i in parameters.header_params) {
                     let header_param = parameters.header_params[i];
-                    if (!req?.headers?.hasOwnProperty(header_param.name)) {
+                    if (!Object.keys(req.body).includes(header_param.name)) {
                         if (header_param.required) {
                             return res.json({ ok: false, error: 'missing_body_param', name: header_param.name });
                         }
@@ -157,7 +157,7 @@ export class ApiHelper {
                 }
                 for (i in parameters.query_params) {
                     let query_param = parameters.query_params![i];
-                    if (!req?.query?.hasOwnProperty(query_param.name)) {
+                    if (!Object.keys(req.body).includes(query_param.name)) {
                         if (query_param.required) {
                             return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
                         }
