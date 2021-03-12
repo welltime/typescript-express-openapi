@@ -1,5 +1,4 @@
 import Express from 'express';
-export { default as generateDocsStub } from './docs';
 interface ParameterDetail {
     name: string;
     type: string;
@@ -14,7 +13,7 @@ interface Parameters<T> {
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
 }
-export default class ApiHelper {
+export declare class ApiHelper {
     app: Express.Application;
     documentationPaths: any;
     constructor(app: Express.Application, documentationPaths: any);
@@ -26,3 +25,34 @@ export default class ApiHelper {
         response: any;
     }, callback: ((params: T, res: Express.Response) => any)): void;
 }
+export declare function createDocsStub(info: string, version: string, title: string, host: string, basePath: string, tags: {
+    name: string;
+    description: string;
+}[]): {
+    openapi: string;
+    info: {
+        description: string;
+        version: string;
+        title: string;
+    };
+    host: string;
+    basePath: string;
+    tags: {
+        name: string;
+        description: string;
+    }[];
+    schemes: string[];
+    paths: {};
+    components: {
+        description: {
+            alwaysok: string;
+        };
+        property: {
+            ok: {
+                type: string;
+                description: string;
+            };
+        };
+    };
+};
+export {};
