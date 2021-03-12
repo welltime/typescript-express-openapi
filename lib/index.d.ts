@@ -1,5 +1,5 @@
 import Express from 'express';
-export * as generateDocsStub from './docs';
+export { default as generateDocsStub } from './docs';
 interface ParameterDetail {
     name: string;
     type: string;
