@@ -1,6 +1,6 @@
 import Express from 'express'
 import multer from 'multer';
-export * as generateDocsStub from './docs'
+export {default as generateDocsStub} from './docs'
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
 
 /**
