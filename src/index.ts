@@ -119,9 +119,9 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
 }
 
 export class ApiHelper {
-    app: Express.Application;
+    app: any;
     documentationPaths: any;
-    constructor(app: Express.Application, documentationPaths: any) {
+    constructor(app: any, documentationPaths: any) {
         this.documentationPaths = documentationPaths;
         this.app = app;
     }

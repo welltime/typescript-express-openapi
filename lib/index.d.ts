@@ -14,9 +14,9 @@ interface Parameters<T> {
     checks: ((obj: T) => Promise<boolean>)[];
 }
 export declare class ApiHelper {
-    app: Express.Application;
+    app: any;
     documentationPaths: any;
-    constructor(app: Express.Application, documentationPaths: any);
+    constructor(app: any, documentationPaths: any);
     add<T>(url: string, method: string, parameters: Parameters<T>, docs: {
         description: string;
         summary: string;
