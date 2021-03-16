@@ -132,6 +132,7 @@ export class ApiHelper {
         let func = async (req: Express.Request, res: Express.Response) => {
             try {
                 res.setHeader('Access-Control-Allow-Origin', '*');
+                console.log(req.headers);
                 let argument_result: any = {};
                 let collected_params: {value: any, detail: ParameterDetail}[] = [];
                 let i: any;
