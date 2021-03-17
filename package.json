@@ -2,11 +2,11 @@
   "name": "typescript-express-openapi",
   "version": "1.0.0",
   "description": "Typescript express OpenAPI helper",
-  "main": "lib/index.js",
+  "main": "out/index.js",
   "files": [
-    "lib"
+    "out"
   ],
-  "types": "lib/index.d.ts",
+  "types": "out/index.d.ts",
   "scripts": {
     "compile": "tsc",
     "prepare": "npm run compile"
