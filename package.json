@@ -6,8 +6,10 @@
   "files": [
     "lib"
   ],
+  "types": "lib/index.d.ts",
   "scripts": {
-    "compile": "tsc"
+    "compile": "tsc",
+    "prepare": "npm run compile"
   },
   "repository": {
     "type": "git",
