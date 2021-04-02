@@ -68,7 +68,6 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         methodDocs.parameters = [];
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
-            console.log('ADDING', query_item.name);
             methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query', 
                 schema: { type: query_item.type } });
         }
@@ -132,7 +131,6 @@ export class ApiHelper {
         let func = async (req: Express.Request, res: Express.Response) => {
             try {
                 res.setHeader('Access-Control-Allow-Origin', '*');
-                console.log(req.headers);
                 let argument_result: any = {};
                 let collected_params: {value: any, detail: ParameterDetail}[] = [];
                 let i: any;
@@ -175,7 +173,6 @@ export class ApiHelper {
                     argument_result[param.detail.name] = validation.value;
                 }
                 if (parameters.is_file_upload) {
-                    console.log(req.file);
                     argument_result.file = req.file;
                 }
                 await callback(argument_result, res);
