@@ -37,9 +37,12 @@ function validateString(value: any) : Validation {
 function validateAny(value: any) : Validation {
     return { ok: true, value };
 }
+function validateBoolean(value: any) : Validation {
+    return { ok: typeof(value) === 'boolean', value: Boolean(value) };
+}
 
 function validate(value: any, type: string) : Validation {
-    const validations: any = { 'number': validateNumber, 'string': validateString, 'any': validateAny };
+    const validations: any = { 'number': validateNumber, 'string': validateString, 'boolean': validateBoolean, 'any': validateAny };
     if (type in validations) {
         return validations[type](value);
     }
