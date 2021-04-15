@@ -4,12 +4,13 @@
   "description": "Typescript express OpenAPI helper",
   "main": "lib/index.js",
   "files": [
-    "lib/*"
+    "*"
   ],
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
+    "postinstall": "npm run build",
     "version": "git add -A src",
     "postversion": "git push && git push --tags"
   },
