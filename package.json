@@ -4,7 +4,7 @@
   "description": "Typescript express OpenAPI helper",
   "main": "lib/index.js",
   "files": [
-    "lib/**/*"
+    "lib/*"
   ],
   "types": "lib/index.d.ts",
   "scripts": {
