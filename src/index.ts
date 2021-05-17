@@ -136,6 +136,7 @@ export class ApiHelper {
                 res.setHeader('Access-Control-Allow-Origin', '*');
                 let argument_result: any = {};
                 let collected_params: {value: any, detail: ParameterDetail}[] = [];
+                let url_params = req.params;
                 let i: any;
                 for (i in parameters.body_params) {
                     let body_param = parameters.body_params[i];
@@ -174,6 +175,11 @@ export class ApiHelper {
                         return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
                     }
                     argument_result[param.detail.name] = validation.value;
+                }
+                if (url_params) {
+                    for (let i in url_params) {
+                        argument_result[i] = req.params[i]
+                    }
                 }
                 if (parameters.is_file_upload) {
                     argument_result.file = req.file;
