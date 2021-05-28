@@ -176,13 +176,17 @@ export class ApiHelper {
                     }
                     argument_result[param.detail.name] = validation.value;
                 }
+                if (parameters.is_file_upload) {
+                    argument_result.file = req.file;
+                }
+                // черновой вариант
                 if (url_params) {
                     for (let i in url_params) {
                         argument_result[i] = req.params[i]
                     }
                 }
-                if (parameters.is_file_upload) {
-                    argument_result.file = req.file;
+                if (req.url.indexOf('/ws/')) {
+                    argument_result['express_req'] = req
                 }
                 await callback(argument_result, res);
             } catch(e) {
