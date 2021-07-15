@@ -38,7 +38,7 @@ function validateAny(value: any) : Validation {
     return { ok: true, value };
 }
 function validateBoolean(value: any) : Validation {
-    return { ok: typeof(value) === 'boolean', value: Boolean(value) };
+    return { ok: ((value + '') == 'true') || ((value + '') == 'false'), value: (value + '')  == 'true' };
 }
 
 function validate(value: any, type: string) : Validation {
