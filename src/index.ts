@@ -1,3 +1,3 @@
 
-export { ApiHelper, createDocsStub }  from './docsValidator'
-export { Topic, SubTopic, Severity, logException, logEvent, logMessage } from './log'
+export * as Api  from './docsValidator'
+export * as Log from './log'
