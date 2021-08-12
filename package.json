@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
+    "postinstall": "npm run build",
     "version": "git add -A src",
     "postversion": "git push && git push --tags"
   },
