@@ -9,7 +9,6 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build",
     "version": "git add -A src",
     "postversion": "git push && git push --tags"
   },
