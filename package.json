@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm i -D chalk && tsc",
     "version": "git add -A src",
-    "prepare": "npm run build",
+    "postinstall": "npm run build",
     "postversion": "git push && git push --tags"
   },
   "repository": {
