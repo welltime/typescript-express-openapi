@@ -41,13 +41,13 @@ export declare function createDocsStub(info: string, version: string, title: str
         version: string;
         title: string;
     };
-    host: string;
-    basePath: string;
+    servers: {
+        url: string;
+    }[];
     tags: {
         name: string;
         description: string;
     }[];
-    schemes: string[];
     paths: {};
     components: {
         description: {

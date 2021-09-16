@@ -60,7 +60,7 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
     methodDocs.tags = data.tags;
     methodDocs.responses = {};
     methodDocs.responses['200'] = {};
-    methodDocs.responses['200'].description = { '$ref' : '#/components/description/alwaysok' };
+    methodDocs.responses['200'].description = '#/components/description/alwaysok';
     methodDocs.responses['200'].content = {};
     methodDocs.responses['200'].content['application/json'] = {};
     methodDocs.responses['200'].content['application/json'].schema = {};
@@ -98,6 +98,9 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
             //@ts-ignore
             //TODO: Fix
             schema.example[parameter.name] = parameters.example[parameter.name];
+        }
+        if (!schema.required.length) {
+            delete schema.required;
         }
     } else if (parameters.is_file_upload) {
         methodDocs.requestBody = {
@@ -213,8 +216,9 @@ export function createDocsStub (info: string, version: string, title: string, ho
         openapi: '3.0.0', info: {
             description: info,
             version, title,
-        }, host, basePath,
-        tags, schemes: ['http'], paths: {},
+        },
+        servers: [{url: `https://${host}/${basePath}`}],
+        tags, paths: {},
         components: {
             description: {
                 alwaysok: `Всегда возвращается 200. Индикация ошибки в поле ok ответа.
