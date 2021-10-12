@@ -3,6 +3,12 @@ import multer from 'multer';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
 import {is_dev_env, privacy, projects} from './constants'
 
+/*TODO: пока так, в будущем стоит немного изменить логику 
+в ApiHelper запрос будет уходить на apiPath + url
+apiPath задается в createDocsStub
+*/
+let apiPath: string = ''
+
 /**
  * Этот класс призван.
  * 1. Проверять входные аргументы API запроса.
@@ -200,12 +206,12 @@ export class ApiHelper {
 
         };
         if (method.toLowerCase() == 'get') {
-            this.app.get(url, func);
+            this.app.get(`/${apiPath}${url}`, func);
         } else {
             if (parameters.is_file_upload) {
-                this.app.post(url, upload.single('file'), func);
+                this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
             } else {
-                this.app.post(url, func);
+                this.app.post(`/${apiPath}${url}`, func);
             }
         }
     }
@@ -214,6 +220,7 @@ export class ApiHelper {
 export function createDocsStub (info: string, version: string, title: string, projectName: keyof typeof projects,
     privacyType: keyof typeof privacy, tags: {name: string, description: string}[]) {
     const {protocol, host, basePath} = getApiPath(projectName, privacyType)
+    apiPath = basePath
     const docs = {
         openapi: '3.0.0', info: {
             description: info,
@@ -236,21 +243,18 @@ export function createDocsStub (info: string, version: string, title: string, pr
     return docs;
 }
 
-function getApiPath(projectName: keyof typeof projects, privacyType: keyof typeof privacy ) {
-    const settings: any = { protocol: is_dev_env ? 'http' : 'https' }
+function getApiPath(projectName: keyof typeof projects, privacyType: keyof typeof privacy ): {protocol: string, basePath: string, host: string} {
+    const settings: any = { protocol: is_dev_env ? 'http' : 'https', basePath: `api/${privacyType}/api` }
 
     switch (projectName) {
         case projects.chatbots:
             settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`
-            settings.basePath = `api/${privacyType}/api`
             break;
         case projects.messaging:
             settings.host = `messaging.mcn.${is_dev_env ? 'local' : 'ru'}`
-            settings.basePath = `api/${privacyType}/api`
             break;
         case projects.robocall:
-            settings.host = is_dev_env ? 'robocall-backend-dev.local' : 'robocall.mcn.ruj'
-            settings.basePath = `api/${privacyType}/api`
+            settings.host = is_dev_env ? 'robocall-backend-dev.local' : 'robocall.mcn.ru'
             break;
         default:
             break;
