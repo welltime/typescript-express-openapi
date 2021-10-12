@@ -210,14 +210,14 @@ export class ApiHelper {
     }
 }
 
-export function createDocsStub (info: string, version: string, title: string, host: string,
+export function createDocsStub (info: string, version: string, title: string,protocol: string, host: string,
     basePath: string, tags: {name: string, description: string}[]) {
     const docs = {
         openapi: '3.0.0', info: {
             description: info,
             version, title,
         },
-        servers: [{url: `https://${host}/${basePath}`}],
+        servers: [{url: `${protocol}://${host}/${basePath}`}],
         tags, paths: {},
         components: {
             description: {

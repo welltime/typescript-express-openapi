@@ -31,7 +31,7 @@ export declare class ApiHelper {
         response: any;
     }, callback: ((params: T, res: Express.Response) => any)): void;
 }
-export declare function createDocsStub(info: string, version: string, title: string, host: string, basePath: string, tags: {
+export declare function createDocsStub(info: string, version: string, title: string, protocol: string, host: string, basePath: string, tags: {
     name: string;
     description: string;
 }[]): {
