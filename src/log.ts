@@ -1,4 +1,4 @@
-let is_dev_env = process.env.IS_DEV_ENV == "true";
+import { is_dev_env } from './constants';
 import chalk from 'chalk';
 
 export enum Topic {

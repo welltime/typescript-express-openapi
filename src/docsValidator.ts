@@ -1,6 +1,7 @@
 import Express, { query } from 'express'
 import multer from 'multer';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
+import {is_dev_env, privacy, projects} from './constants'
 
 /**
  * Этот класс призван.
@@ -210,8 +211,9 @@ export class ApiHelper {
     }
 }
 
-export function createDocsStub (info: string, version: string, title: string,protocol: string, host: string,
-    basePath: string, tags: {name: string, description: string}[]) {
+export function createDocsStub (info: string, version: string, title: string, projectName: keyof typeof projects,
+    privacyType: keyof typeof privacy, tags: {name: string, description: string}[]) {
+    const {protocol, host, basePath} = getApiPath(projectName, privacyType)
     const docs = {
         openapi: '3.0.0', info: {
             description: info,
@@ -232,4 +234,26 @@ export function createDocsStub (info: string, version: string, title: string,pro
         }
     };
     return docs;
+}
+
+function getApiPath(projectName: keyof typeof projects, privacyType: keyof typeof privacy ) {
+    const settings: any = { protocol: is_dev_env ? 'http' : 'https' }
+
+    switch (projectName) {
+        case projects.chatbots:
+            settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`
+            settings.basePath = `api/${privacyType}/api`
+            break;
+        case projects.messaging:
+            settings.host = `messaging.mcn.${is_dev_env ? 'local' : 'ru'}`
+            settings.basePath = `api/${privacyType}/api`
+            break;
+        case projects.robocall:
+            settings.host = is_dev_env ? 'robocall-backend-dev.local' : 'robocall.mcn.ruj'
+            settings.basePath = `api/${privacyType}/api`
+            break;
+        default:
+            break;
+    }
+    return settings
 }
