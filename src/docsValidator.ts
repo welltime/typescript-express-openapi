@@ -218,15 +218,15 @@ export class ApiHelper {
 }
 
 export function createDocsStub (info: string, version: string, title: string, projectName: keyof typeof projects,
-    privacyType: keyof typeof privacy, tags: {name: string, description: string}[]) {
-    const {protocol, host, basePath} = getApiPath(projectName, privacyType)
-    apiPath = basePath
+    baseApiPath: string, tags: {name: string, description: string}[]) {
+    const {protocol, host} = getApiPath(projectName)
+    apiPath = baseApiPath
     const docs = {
         openapi: '3.0.0', info: {
             description: info,
             version, title,
         },
-        servers: [{url: `${protocol}://${host}/${basePath}`}],
+        servers: [{url: `${protocol}://${host}/${baseApiPath}`}],
         tags, paths: {},
         components: {
             description: {
@@ -243,8 +243,8 @@ export function createDocsStub (info: string, version: string, title: string, pr
     return docs;
 }
 
-function getApiPath(projectName: keyof typeof projects, privacyType: keyof typeof privacy ): {protocol: string, basePath: string, host: string} {
-    const settings: any = { protocol: is_dev_env ? 'http' : 'https', basePath: `api/${privacyType}/api` }
+function getApiPath(projectName: keyof typeof projects ): {protocol: string, host: string} {
+    const settings: any = { protocol: is_dev_env ? 'http' : 'https' }
 
     switch (projectName) {
         case projects.chatbots:
