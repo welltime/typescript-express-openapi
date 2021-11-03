@@ -1,5 +1,5 @@
 import Express from 'express';
-import { privacy, projects } from './constants';
+import { projects } from './constants';
 /**
  * Этот класс призван.
  * 1. Проверять входные аргументы API запроса.
@@ -32,7 +32,7 @@ export declare class ApiHelper {
         response: any;
     }, callback: ((params: T, res: Express.Response) => any)): void;
 }
-export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, privacyType: keyof typeof privacy, tags: {
+export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: {
     name: string;
     description: string;
 }[]): {
