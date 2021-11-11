@@ -20,6 +20,7 @@ interface ParameterDetail {
     type: string;
     description: string;
     required: boolean;
+    validators?: ValidationRule[];
 }
 interface Parameters<T> {
     example: T;
@@ -29,6 +30,8 @@ interface Parameters<T> {
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
 }
+
+type ValidationRule = (valueToValidate: any) => boolean
 
 interface Validation {
     ok: boolean;
@@ -48,10 +51,16 @@ function validateBoolean(value: any) : Validation {
     return { ok: ((value + '') == 'true') || ((value + '') == 'false'), value: (value + '')  == 'true' };
 }
 
-function validate(value: any, type: string) : Validation {
+function validate(value: any, type: string) : Validation;
+function validate(value: any, type: string, rules?: ValidationRule[]) : Validation;
+function validate(value: any, type: string, rules?: ValidationRule[]) : Validation {
     const validations: any = { 'number': validateNumber, 'string': validateString, 'boolean': validateBoolean, 'any': validateAny };
     if (type in validations) {
-        return validations[type](value);
+        if (!rules) {
+            return validations[type](value);
+        } else {
+            return {ok: rules?.every(validatingFunction => validatingFunction(value) === true), value: value}
+        }
     }
     return { ok: false, value: null };
 }
@@ -180,7 +189,7 @@ export class ApiHelper {
                 }
                 for (i in collected_params) {
                     let param = collected_params[i];
-                    let validation : Validation = validate(param.value, param.detail.type);
+                    let validation : Validation = validate(param.value, param.detail.type, param.detail.validators);
                     if (!validation.ok) {
                         return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
                     }
