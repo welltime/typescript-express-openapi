@@ -11,6 +11,7 @@ interface ParameterDetail {
     type: string;
     description: string;
     required: boolean;
+    validators?: ValidationRule[];
 }
 interface Parameters<T> {
     example: T;
@@ -20,6 +21,7 @@ interface Parameters<T> {
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
 }
+declare type ValidationRule = (valueToValidate: any) => boolean;
 export declare class ApiHelper {
     app: any;
     documentationPaths: any;
