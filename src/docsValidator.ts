@@ -207,13 +207,23 @@ export class ApiHelper {
         };
         if (method.toLowerCase() == 'get') {
             this.app.get(`/${apiPath}${url}`, func);
+        } else if (method.toLowerCase() == "delete") {
+            this.app.delete(url, func);
+        } else if (method.toLowerCase() == "put") {
+            if (parameters.is_file_upload) {
+                this.app.put(url, upload.single('file'), func);
+            }
+            else {
+                this.app.put(url, func);
+            }
         } else {
             if (parameters.is_file_upload) {
-                this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
-            } else {
-                this.app.post(`/${apiPath}${url}`, func);
+                this.app.post(url, upload.single('file'), func);
             }
-        }
+            else {
+                this.app.post(url, func);
+            }
+        } 
     }
 }
 
