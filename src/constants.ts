@@ -3,7 +3,8 @@ export const is_dev_env = process.env.IS_DEV_ENV == 'true'
 export enum projects {
     chatbots = 'chatbots',
     robocall = 'robocall',
-    messaging = 'messaging'
+    messaging = 'messaging',
+    apiproxy = 'apiproxy'
 }
 
 export enum privacy {

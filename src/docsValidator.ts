@@ -258,13 +258,16 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
 
     switch (projectName) {
         case projects.chatbots:
-            settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`
+            settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
         case projects.messaging:
-            settings.host = `messaging.mcn.${is_dev_env ? 'local' : 'ru'}`
+            settings.host = `messaging.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
         case projects.robocall:
-            settings.host = is_dev_env ? 'robocall-backend-dev.local' : 'robocall.mcn.ru'
+            settings.host = is_dev_env ? 'robocall-backend-dev.local' : 'robocall.mcn.ru';
+            break;
+        case projects.apiproxy:
+            settings.host = is_dev_env ? 'apiproxy.mcn.local' : 'integration.mcn.ru';
             break;
         default:
             break;
