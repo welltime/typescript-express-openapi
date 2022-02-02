@@ -3,7 +3,8 @@ export declare enum projects {
     chatbots = "chatbots",
     robocall = "robocall",
     messaging = "messaging",
-    apiproxy = "apiproxy"
+    apiproxy = "apiproxy",
+    base = "base"
 }
 export declare enum privacy {
     protected = "protected",
