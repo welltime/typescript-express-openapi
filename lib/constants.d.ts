@@ -1,4 +1,5 @@
 export declare const is_dev_env: boolean;
+export declare const is_stage_env: boolean;
 export declare enum projects {
     chatbots = "chatbots",
     robocall = "robocall",

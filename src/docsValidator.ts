@@ -1,7 +1,7 @@
 import Express, { query } from 'express'
 import multer from 'multer';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
-import {is_dev_env, privacy, projects} from './constants'
+import {is_dev_env, is_stage_env, privacy, projects} from './constants'
 
 /*TODO: пока так, в будущем стоит немного изменить логику 
 в ApiHelper запрос будет уходить на apiPath + url
@@ -270,7 +270,7 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
             settings.host = is_dev_env ? 'apiproxy.mcn.local' : 'integration.mcn.ru';
             break;
         case projects.base:
-            settings.host = `base.mcn.${is_dev_env ? 'local' : 'ru'}`;
+            settings.host = `${is_stage_env? 'base-stage' : 'base'}.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
         default:
             break;
