@@ -61,7 +61,7 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
     paths[url] = {};
     paths[url][method.toLowerCase()] = {};
     let methodDocs = paths[url][method.toLowerCase()];
-    methodDocs.operationId = url.replace('/', '_');
+    methodDocs.operationId = method.toLowerCase() + '_' + url.replace(/\//g, '_');
     methodDocs.description = data.description;
     methodDocs.summary = data.summary;
     methodDocs.tags = data.tags;
@@ -82,19 +82,26 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
                 schema: { type: query_item.type } });
         }
     }
-    if (parameters.body_params.length > 0 && !parameters.is_file_upload) {
+    if (parameters.body_params.length > 0) {
+        const contentType = parameters.is_file_upload ? 'multipart/form-data' : 'application/json';
         methodDocs.requestBody = {};
         methodDocs.requestBody.description = data.bodyDesc;
         methodDocs.requestBody.required = false;
         methodDocs.requestBody.content = {};
-        methodDocs.requestBody.content['application/json'] = {};
-        methodDocs.requestBody.content['application/json'].schema = {};
-        let schema = methodDocs.requestBody.content['application/json'].schema;
+        methodDocs.requestBody.content[contentType] = {};
+        methodDocs.requestBody.content[contentType].schema = {};
+        let schema = methodDocs.requestBody.content[contentType].schema;
         schema.type = 'object';
         schema.required = [];
         schema.properties = {};
         schema.example = {};
         let i;
+        if(parameters.is_file_upload) {
+            schema.properties['file'] = {
+                type: 'string',
+                format: 'binary'
+            }
+        }
         for (i in parameters.body_params) {
             let parameter = parameters.body_params[i];
             if (parameter.required) {
@@ -109,22 +116,6 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         if (!schema.required.length) {
             delete schema.required;
         }
-    } else if (parameters.is_file_upload) {
-        methodDocs.requestBody = {
-            content: {
-                'multipart/form-data': {
-                    schema: {
-                        type: 'object',
-                        properties: {
-                            file: {
-                                type: 'string',
-                                format: 'binary'
-                            }
-                        }
-                    }
-                },
-            }
-        };
     }
 
 
