@@ -249,7 +249,7 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
 
     switch (projectName) {
         case projects.calltracking:
-            settings.host = `calltracking.mcn.${is_dev_env ? 'local' : 'ru'}`;
+            settings.host = is_dev_env ? 'calltracking-dev.mcn.loc' : 'calltracking.mcn.ru';
             break;
         case projects.chatbots:
             settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`;
