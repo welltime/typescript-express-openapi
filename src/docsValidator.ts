@@ -248,6 +248,9 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
     const settings: any = { protocol: is_dev_env ? 'http' : 'https' }
 
     switch (projectName) {
+        case projects.calltracking:
+            settings.host = `calltracking.mcn.${is_dev_env ? 'local' : 'ru'}`;
+            break;
         case projects.chatbots:
             settings.host = `chatbots.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
