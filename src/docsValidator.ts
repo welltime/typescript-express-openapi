@@ -20,6 +20,7 @@ interface ParameterDetail {
     type: string;
     description: string;
     required: boolean;
+    enum?: any[];
 }
 interface Parameters<T> {
     example: T;
@@ -79,7 +80,7 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
             methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query', 
-                schema: { type: query_item.type } });
+                schema: query_item.enum ? { type: query_item.type, enum: query_item.enum }  : { type: query_item.type } });
         }
     }
     if (parameters.body_params.length > 0) {
