@@ -3,7 +3,7 @@ import multer from 'multer';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
 import {is_dev_env, is_stage_env, privacy, projects} from './constants'
 
-/*TODO: пока так, в будущем стоит немного изменить логику 
+/*TODO: пока так, в будущем стоит немного изменить логику
 в ApiHelper запрос будет уходить на apiPath + url
 apiPath задается в createDocsStub
 */
@@ -34,6 +34,10 @@ interface Parameters<T> {
 interface Validation {
     ok: boolean;
     value: any;
+}
+
+interface ExpressReq {
+    express_req: Express.Request;
 }
 
 function validateNumber(number: any) : Validation {
@@ -79,7 +83,7 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         methodDocs.parameters = [];
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
-            methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query', 
+            methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query',
                 schema: query_item.enum ? { type: query_item.type, enum: query_item.enum }  : { type: query_item.type } });
         }
     }
@@ -131,7 +135,7 @@ export class ApiHelper {
     }
 
     add<T>(url: string, method: string, parameters: Parameters<T>, docs: {description: string, summary: string, tags: string[], bodyDesc?: string, response:any},
-        callback: ((params: T, res:Express.Response) => any)) {
+        callback: ((params: T & ExpressReq, res:Express.Response) => any)) {
         addDocs(method, url, parameters, docs, this.documentationPaths);
         let func = async (req: Express.Request, res: Express.Response) => {
             try {
@@ -215,7 +219,7 @@ export class ApiHelper {
             else {
                 this.app.post(`/${apiPath}${url}`, func);
             }
-        } 
+        }
     }
 }
 
