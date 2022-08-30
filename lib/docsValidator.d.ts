@@ -11,6 +11,7 @@ interface ParameterDetail {
     type: string;
     description: string;
     required: boolean;
+    enum?: any[];
 }
 interface Parameters<T> {
     example: T;
@@ -19,6 +20,9 @@ interface Parameters<T> {
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
+}
+interface ExpressReq {
+    express_req: Express.Request;
 }
 export declare class ApiHelper {
     app: any;
@@ -30,7 +34,7 @@ export declare class ApiHelper {
         tags: string[];
         bodyDesc?: string;
         response: any;
-    }, callback: ((params: T, res: Express.Response) => any)): void;
+    }, callback: ((params: T & ExpressReq, res: Express.Response) => any)): void;
 }
 export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: {
     name: string;
