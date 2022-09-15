@@ -7,7 +7,8 @@ export enum projects {
     robocall = 'robocall',
     messaging = 'messaging',
     apiproxy = 'apiproxy',
-    base = 'base'
+    base = 'base',
+    paidmethods = 'paidmethods'
 }
 
 export enum privacy {
