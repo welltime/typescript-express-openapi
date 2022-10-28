@@ -6,7 +6,8 @@ export declare enum projects {
     robocall = "robocall",
     messaging = "messaging",
     apiproxy = "apiproxy",
-    base = "base"
+    base = "base",
+    integration = "integration"
 }
 export declare enum privacy {
     protected = "protected",
