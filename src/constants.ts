@@ -8,6 +8,7 @@ export enum projects {
     messaging = 'messaging',
     apiproxy = 'apiproxy',
     base = 'base'
+    integration = 'integration'
 }
 
 export enum privacy {
