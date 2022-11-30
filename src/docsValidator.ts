@@ -269,13 +269,13 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
             settings.host = is_dev_env ? 'apiproxy.mcn.local' : 'integration.mcn.ru';
             break;
         case projects.base:
-            settings.host = `${is_stage_env? 'base-stage' : 'base'}.mcn.${is_dev_env ? 'local' : 'ru'}`;
+            settings.host = `${is_stage_env? 'base-stage' : 'base'}.mcn.${is_dev_env ? 'local' : 'ru' }`;
             break;
         case projects.integration:
-            settings.host = is_stage_env ? 'integration.mcn.local' : 'integration.mcn.ru';
+            settings.host = `${is_stage_env ? 'integration-stage' : 'integration'}.mcn.${is_dev_env ? 'local' : 'ru' }`;
             break;
         default:
-            break;  
+            break;
     }
     return settings
 }
