@@ -87,7 +87,7 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
                 schema: query_item.enum ? { type: query_item.type, enum: query_item.enum }  : { type: query_item.type } });
         }
     }
-    if (parameters.body_params.length >= 0) {
+    if (parameters.body_params.length > 0) {
         const contentType = parameters.is_file_upload ? 'multipart/form-data' : 'application/json';
         methodDocs.requestBody = {};
         methodDocs.requestBody.description = data.bodyDesc;
