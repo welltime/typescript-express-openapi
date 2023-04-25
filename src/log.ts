@@ -58,7 +58,8 @@ export enum Severity {
 enum LogType {
     exception = 'exception',
     event = 'event',
-    message = 'message'
+    message = 'message',
+    object = 'object'
 }
 
 function getStack() {
@@ -141,6 +142,26 @@ export function logMessage(topic: string, severity: Severity, message: string, s
             }));
         } else {
             console.log(chalk.green.bold(`logType: ${LogType.message} \nmessage: ${message} \n`));
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export function logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
+    try {
+        if (!is_dev_env) {
+            if (process.env.is_running_tests) return;
+            console.log(JSON.stringify({
+                topic,
+                subtopic,
+                severity,
+                stack: getStack(),
+                logType: LogType.object,
+                ...logObj
+            }));
+        } else {
+            console.log(chalk.green.bold(`logType: ${LogType.object} \nmessage: ${logObj} \n`));
         }
     } catch (e) {
         console.log(e);
