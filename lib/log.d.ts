@@ -50,6 +50,9 @@ export declare function logEvent(topic: string, severity: Severity, obj: {
     [key: string]: string | number;
 }, subtopic?: SubTopic): void;
 export declare function logMessage(topic: string, severity: Severity, message: string, subtopic?: SubTopic): void;
+export declare function logObject(topic: Topic, severity: Severity, logObj: {
+    [index: string]: any;
+}, subtopic?: SubTopic): void;
 declare const _default: {
     Topic: typeof Topic;
     SubTopic: typeof SubTopic;
