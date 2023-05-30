@@ -277,6 +277,9 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
         case projects.integration:
             settings.host = is_stage_env ? 'integration.mcn.local' : 'integration.mcn.ru';
             break;
+        case projects.integrationEu:
+            settings.host = is_stage_env ? 'integration.mcn.local' : 'integration.kompaas.tech';
+            break;
         default:
             break;  
     }

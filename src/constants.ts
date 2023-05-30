@@ -9,6 +9,7 @@ export enum projects {
     apiproxy = 'apiproxy',
     base = 'base',
     integration = 'integration',
+    integrationEu = 'integrationEu',
     paidmethods = 'paidmethods'
 }
 
