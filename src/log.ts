@@ -161,7 +161,7 @@ export function logObject(topic: Topic, severity: Severity, logObj: { [index: st
                 ...logObj
             }));
         } else {
-            console.log(chalk.green.bold(`logType: ${LogType.object} \nmessage: ${logObj} \n`));
+            console.log(chalk.green.bold(`logType: ${LogType.object} \nmessage: ${JSON.stringify(logObj)} \n`));
         }
     } catch (e) {
         console.log(e);
