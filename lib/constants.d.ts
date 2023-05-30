@@ -8,6 +8,7 @@ export declare enum projects {
     apiproxy = "apiproxy",
     base = "base",
     integration = "integration",
+    integrationEu = "integrationEu",
     paidmethods = "paidmethods"
 }
 export declare enum privacy {
