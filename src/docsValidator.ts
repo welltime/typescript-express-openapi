@@ -158,7 +158,7 @@ export class ApiHelper {
                     let header_param = parameters.header_params[i];
                     if (!Object.keys(req.headers).includes(header_param.name)) {
                         if (header_param.required) {
-                            return res.json({ ok: false, error: 'missing_body_param', name: header_param.name });
+                            return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
                         }
                         continue ;
                     }
