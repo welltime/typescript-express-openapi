@@ -63,7 +63,7 @@ function validate(value: any, type: string) : Validation {
 
 function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
     data: {description: string, summary: string, tags: string[], bodyDesc?: string, response: any}, paths: any) {
-    paths[url] = {};
+    paths[url] = paths[url] || {};
     paths[url][method.toLowerCase()] = {};
     let methodDocs = paths[url][method.toLowerCase()];
     methodDocs.operationId = method.toLowerCase() + '_' + url.replace(/\//g, '_');
