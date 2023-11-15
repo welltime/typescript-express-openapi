@@ -26,6 +26,7 @@ interface Parameters<T> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
+    path_params?: ParameterDetail[]
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
@@ -63,10 +64,11 @@ function validate(value: any, type: string) : Validation {
 
 function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
     data: {description: string, summary: string, tags: string[], bodyDesc?: string, response: any}, paths: any) {
-    paths[url] = paths[url] || {};
-    paths[url][method.toLowerCase()] = {};
-    let methodDocs = paths[url][method.toLowerCase()];
-    methodDocs.operationId = method.toLowerCase() + '_' + url.replace(/\//g, '_');
+    const swagger_url=url.replace(/\/:([^\/]+)(\/?$)?/g, "/{$1}$2")
+    paths[swagger_url] = paths[swagger_url] ?? {};
+    paths[swagger_url][method.toLowerCase()] = {};
+    let methodDocs = paths[swagger_url][method.toLowerCase()];
+    methodDocs.operationId = method.toLowerCase() + '_' + swagger_url.replace(/\//g, '_');
     methodDocs.description = data.description;
     methodDocs.summary = data.summary;
     methodDocs.tags = data.tags;
@@ -78,13 +80,21 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
     methodDocs.responses['200'].content['application/json'].schema = {};
     methodDocs.responses['200'].content['application/json'].schema.type = 'object';
     methodDocs.responses['200'].content['application/json'].schema.properties = data.response;
+    methodDocs.parameters = [];
     if (parameters.query_params?.length) {
         let i: any;
-        methodDocs.parameters = [];
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
             methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query',
                 schema: query_item.enum ? { type: query_item.type, enum: query_item.enum }  : { type: query_item.type } });
+        }
+    }
+    if (parameters.path_params?.length) {
+        let i: any;
+        for (i in parameters.path_params) {
+            const path_item: ParameterDetail = parameters.path_params[i];
+            methodDocs.parameters.push({ name: path_item.name, description: path_item.description, required: path_item.required, in: 'path',
+                schema: path_item.enum ? { type: path_item.type, enum: path_item.enum }  : { type: path_item.type } });
         }
     }
     if (parameters.body_params.length > 0) {
@@ -136,97 +146,100 @@ export class ApiHelper {
 
     add<T>(url: string, method: string, parameters: Parameters<T>, docs: {description: string, summary: string, tags: string[], bodyDesc?: string, response:any},
         callback: ((params: T & ExpressReq, res:Express.Response) => any)) {
-        addDocs(method, url, parameters, docs, this.documentationPaths);
-        let func = async (req: Express.Request, res: Express.Response) => {
-            try {
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                let argument_result: any = {};
-                let collected_params: {value: any, detail: ParameterDetail}[] = [];
-                let url_params = req.params;
-                let i: any;
-                for (i in parameters.body_params) {
-                    let body_param = parameters.body_params[i];
-                    if (!Object.keys(req.body).includes(body_param.name)) {
-                        if (body_param.required) {
-                            return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
+            addDocs(method, url, parameters, docs, this.documentationPaths);
+            let func = async (req: Express.Request, res: Express.Response) => {
+                try {
+                    res.setHeader('Access-Control-Allow-Origin', '*');
+                    let argument_result: any = {};
+                    let collected_params: {value: any, detail: ParameterDetail}[] = [];
+                    let i: any;
+                    for (i in parameters.body_params) {
+                        let body_param = parameters.body_params[i];
+                        if (!Object.keys(req.body).includes(body_param.name)) {
+                            if (body_param.required) {
+                                return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
+                            }
+                            continue ;
                         }
-                        continue ;
+                        collected_params.push({ value: req.body[body_param.name], detail: body_param });
                     }
-                    collected_params.push({ value: req.body[body_param.name], detail: body_param });
-                }
-                for (i in parameters.header_params) {
-                    let header_param = parameters.header_params[i];
-                    if (!Object.keys(req.headers).includes(header_param.name)) {
-                        if (header_param.required) {
-                            return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
+                    for (i in parameters.header_params) {
+                        let header_param = parameters.header_params[i];
+                        if (!Object.keys(req.headers).includes(header_param.name)) {
+                            if (header_param.required) {
+                                return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
+                            }
+                            continue ;
                         }
-                        continue ;
+                        collected_params.push({ value: req.headers[header_param.name], detail: header_param });
                     }
-                    collected_params.push({ value: req.headers[header_param.name], detail: header_param });
-                }
-                for (i in parameters.query_params) {
-                    let query_param = parameters.query_params![i];
-                    if (!Object.keys(req.query).includes(query_param.name)) {
-                        if (query_param.required) {
-                            return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
+                    for (i in parameters.query_params) {
+                        let query_param = parameters.query_params![i];
+                        if (!Object.keys(req.query).includes(query_param.name)) {
+                            if (query_param.required) {
+                                return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
+                            }
+                            continue ;
                         }
-                        continue ;
+                        collected_params.push({ value: req.query[query_param.name], detail: query_param });
                     }
-                    collected_params.push({ value: req.query[query_param.name], detail: query_param });
-                }
-                for (i in collected_params) {
-                    let param = collected_params[i];
-                    let validation : Validation = validate(param.value, param.detail.type);
-                    if (!validation.ok) {
-                        return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
+                    for (i in parameters.path_params) {
+                        let path_param = parameters.path_params![i];
+                        if (!Object.keys(req.params).includes(path_param.name)) {
+                            if (path_param.required) {
+                                return res.json({ ok: false, error: 'missing_path_param', name: path_param.name });
+                            }
+                            continue ;
+                        }
+                        collected_params.push({ value: req.params[path_param.name], detail: path_param });
                     }
-                    argument_result[param.detail.name] = validation.value;
-                }
-                if (parameters.is_file_upload) {
-                    argument_result.file = req.file;
-                }
-                // черновой вариант
-                if (url_params) {
-                    for (let i in url_params) {
-                        argument_result[i] = req.params[i]
+                    for (i in collected_params) {
+                        let param = collected_params[i];
+                        let validation : Validation = validate(param.value, param.detail.type);
+                        if (!validation.ok) {
+                            return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
+                        }
+                        argument_result[param.detail.name] = validation.value;
                     }
+                    if (parameters.is_file_upload) {
+                        argument_result.file = req.file;
+                    }
+                    if (req.url.indexOf('/ws/')) {
+                        argument_result['express_req'] = req
+                    }
+                    await callback(argument_result, res);
+                } catch(e) {
+                    console.log(e);
+                    res.json({ ok: false, error: 'unknown' });
                 }
-                if (req.url.indexOf('/ws/')) {
-                    argument_result['express_req'] = req
-                }
-                await callback(argument_result, res);
-            } catch(e) {
-                console.log(e);
-                res.json({ ok: false, error: 'unknown' });
-            }
 
-        };
-        if (method.toLowerCase() == 'get') {
-            this.app.get(`/${apiPath}${url}`, func);
-        } else if (method.toLowerCase() == "delete") {
-            this.app.delete(`/${apiPath}${url}`, func);
-        } else if (method.toLowerCase() == "put") {
-            if (parameters.is_file_upload) {
-                this.app.put(`/${apiPath}${url}`, upload.single('file'), func);
+            };
+            if (method.toLowerCase() == 'get') {
+                this.app.get(`/${apiPath}${url}`, func);
+            } else if (method.toLowerCase() == "delete") {
+                this.app.delete(`/${apiPath}${url}`, func);
+            } else if (method.toLowerCase() == "put") {
+                if (parameters.is_file_upload) {
+                    this.app.put(`/${apiPath}${url}`, upload.single('file'), func);
+                }
+                else {
+                    this.app.put(`/${apiPath}${url}`, func);
+                }
+            } else if(method.toLowerCase() == 'patch'){
+                if (parameters.is_file_upload) {
+                    this.app.patch(`/${apiPath}${url}`, upload.single('file'), func);
+                }
+                else {
+                    this.app.patch(`/${apiPath}${url}`, func);
+                }
+            } else {
+                if (parameters.is_file_upload) {
+                    this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
+                }
+                else {
+                    this.app.post(`/${apiPath}${url}`, func);
+                }
             }
-            else {
-                this.app.put(`/${apiPath}${url}`, func);
-            }
-        } else if(method.toLowerCase() == 'patch'){
-            if (parameters.is_file_upload) {
-                this.app.patch(`/${apiPath}${url}`, upload.single('file'), func);
-            }
-            else {
-                this.app.patch(`/${apiPath}${url}`, func);
-            }
-        } else {
-            if (parameters.is_file_upload) {
-                this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
-            }
-            else {
-                this.app.post(`/${apiPath}${url}`, func);
-            }
-        }
     }
 }
 

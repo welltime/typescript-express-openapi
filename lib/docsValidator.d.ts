@@ -17,6 +17,7 @@ interface Parameters<T> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
+    path_params?: ParameterDetail[];
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
