@@ -212,6 +212,13 @@ export class ApiHelper {
             else {
                 this.app.put(`/${apiPath}${url}`, func);
             }
+        } else if(method.toLowerCase() == 'patch'){
+            if (parameters.is_file_upload) {
+                this.app.patch(`/${apiPath}${url}`, upload.single('file'), func);
+            }
+            else {
+                this.app.patch(`/${apiPath}${url}`, func);
+            }
         } else {
             if (parameters.is_file_upload) {
                 this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
