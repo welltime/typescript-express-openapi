@@ -1,13 +1,13 @@
-import Express, { query } from 'express'
+import Express from 'express';
 import multer from 'multer';
+import { is_dev_env, is_stage_env, projects } from './constants';
 const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мегабайт
-import {is_dev_env, is_stage_env, privacy, projects} from './constants'
 
 /*TODO: пока так, в будущем стоит немного изменить логику
 в ApiHelper запрос будет уходить на apiPath + url
 apiPath задается в createDocsStub
 */
-let apiPath: string = ''
+let apiPath: string = '';
 
 /**
  * Этот класс призван.
@@ -26,7 +26,7 @@ interface Parameters<T> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
-    path_params?: ParameterDetail[]
+    path_params?: ParameterDetail[];
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     checks: ((obj: T) => Promise<boolean>)[];
@@ -41,30 +41,29 @@ interface ExpressReq {
     express_req: Express.Request;
 }
 
-function validateNumber(number: any) : Validation {
-    return { ok: !isNaN(Number(number)), value: Number(number) };
+function validateNumber(value: any): Validation {
+    return { ok: !isNaN(Number(value)), value: Number(value) };
 }
-function validateString(value: any) : Validation {
-    return { ok: (typeof value?.toString()) == 'string', value: value?.toString() };
+function validateString(value: any): Validation {
+    return { ok: typeof value?.toString() == 'string', value: value?.toString() };
 }
-function validateAny(value: any) : Validation {
+function validateAny(value: any): Validation {
     return { ok: true, value };
 }
-function validateBoolean(value: any) : Validation {
-    return { ok: ((value + '') == 'true') || ((value + '') == 'false'), value: (value + '')  == 'true' };
+function validateBoolean(value: any): Validation {
+    return { ok: value + '' == 'true' || value + '' == 'false', value: value + '' == 'true' };
 }
 
-function validate(value: any, type: string) : Validation {
-    const validations: any = { 'number': validateNumber, 'string': validateString, 'boolean': validateBoolean, 'any': validateAny };
-    if (type in validations) {
-        return validations[type](value);
+function validate(value: any, parameter: ParameterDetail): Validation {
+    const validations: any = { number: validateNumber, string: validateString, boolean: validateBoolean, any: validateAny };
+    if (parameter.type in validations) {
+        return validations[parameter.type](value);
     }
     return { ok: false, value: null };
 }
 
-function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
-    data: {description: string, summary: string, tags: string[], bodyDesc?: string, response: any}, paths: any) {
-    const swagger_url=url.replace(/\/:([^\/]+)(\/?$)?/g, "/{$1}$2")
+function addDocs<T>(method: string, url: string, parameters: Parameters<T>, data: { description: string; summary: string; tags: string[]; bodyDesc?: string; response: any }, paths: any) {
+    const swagger_url = url.replace(/\/:([^\/]+)(\/?$)?/g, '/{$1}$2');
     paths[swagger_url] = paths[swagger_url] ?? {};
     paths[swagger_url][method.toLowerCase()] = {};
     let methodDocs = paths[swagger_url][method.toLowerCase()];
@@ -85,16 +84,26 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         let i: any;
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
-            methodDocs.parameters.push({ name: query_item.name, description: query_item.description, required: query_item.required, in: 'query',
-                schema: query_item.enum ? { type: query_item.type, enum: query_item.enum }  : { type: query_item.type } });
+            methodDocs.parameters.push({
+                name: query_item.name,
+                description: query_item.description,
+                required: query_item.required,
+                in: 'query',
+                schema: query_item.enum ? { type: query_item.type, enum: query_item.enum } : { type: query_item.type },
+            });
         }
     }
     if (parameters.path_params?.length) {
         let i: any;
         for (i in parameters.path_params) {
             const path_item: ParameterDetail = parameters.path_params[i];
-            methodDocs.parameters.push({ name: path_item.name, description: path_item.description, required: path_item.required, in: 'path',
-                schema: path_item.enum ? { type: path_item.type, enum: path_item.enum }  : { type: path_item.type } });
+            methodDocs.parameters.push({
+                name: path_item.name,
+                description: path_item.description,
+                required: path_item.required,
+                in: 'path',
+                schema: path_item.enum ? { type: path_item.type, enum: path_item.enum } : { type: path_item.type },
+            });
         }
     }
     if (parameters.body_params.length > 0) {
@@ -111,11 +120,11 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
         schema.properties = {};
         schema.example = {};
         let i;
-        if(parameters.is_file_upload) {
+        if (parameters.is_file_upload) {
             schema.properties['file'] = {
                 type: 'string',
-                format: 'binary'
-            }
+                format: 'binary',
+            };
         }
         for (i in parameters.body_params) {
             let parameter = parameters.body_params[i];
@@ -132,8 +141,6 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>,
             delete schema.required;
         }
     }
-
-
 }
 
 export class ApiHelper {
@@ -144,133 +151,139 @@ export class ApiHelper {
         this.app = app;
     }
 
-    add<T>(url: string, method: string, parameters: Parameters<T>, docs: {description: string, summary: string, tags: string[], bodyDesc?: string, response:any},
-        callback: ((params: T & ExpressReq, res:Express.Response) => any)) {
-            addDocs(method, url, parameters, docs, this.documentationPaths);
-            let func = async (req: Express.Request, res: Express.Response) => {
+    add<T>(url: string, method: string, parameters: Parameters<T>, docs: { description: string; summary: string; tags: string[]; bodyDesc?: string; response: any }, callback: (params: T & ExpressReq, res: Express.Response) => any) {
+        addDocs(method, url, parameters, docs, this.documentationPaths);
+        let func = async (req: Express.Request, res: Express.Response) => {
+            try {
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                let argument_result: any = {};
+                let collected_params: { value: any; detail: ParameterDetail }[] = [];
+                let i: any;
+                for (i in parameters.body_params) {
+                    let body_param = parameters.body_params[i];
+                    if (!Object.keys(req.body).includes(body_param.name)) {
+                        if (body_param.required) {
+                            return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
+                        }
+                        continue;
+                    }
+                    collected_params.push({ value: req.body[body_param.name], detail: body_param });
+                }
+                for (i in parameters.header_params) {
+                    let header_param = parameters.header_params[i];
+                    if (!Object.keys(req.headers).includes(header_param.name)) {
+                        if (header_param.required) {
+                            return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
+                        }
+                        continue;
+                    }
+                    collected_params.push({ value: req.headers[header_param.name], detail: header_param });
+                }
+                for (i in parameters.query_params) {
+                    let query_param = parameters.query_params![i];
+                    if (!Object.keys(req.query).includes(query_param.name)) {
+                        if (query_param.required) {
+                            return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
+                        }
+                        continue;
+                    }
+                    collected_params.push({ value: req.query[query_param.name], detail: query_param });
+                }
+                for (i in parameters.path_params) {
+                    let path_param = parameters.path_params![i];
+                    if (!Object.keys(req.params).includes(path_param.name)) {
+                        if (path_param.required) {
+                            return res.json({ ok: false, error: 'missing_path_param', name: path_param.name });
+                        }
+                        continue;
+                    }
+                    collected_params.push({ value: req.params[path_param.name], detail: path_param });
+                }
+                for (i in collected_params) {
+                    let param = collected_params[i];
+                    let validation: Validation = validate(param.value, param.detail);
+                    if (!validation.ok) {
+                        return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
+                    }
+                    argument_result[param.detail.name] = validation.value;
+                }
                 try {
-                    res.setHeader('Access-Control-Allow-Origin', '*');
-                    let argument_result: any = {};
-                    let collected_params: {value: any, detail: ParameterDetail}[] = [];
-                    let i: any;
-                    for (i in parameters.body_params) {
-                        let body_param = parameters.body_params[i];
-                        if (!Object.keys(req.body).includes(body_param.name)) {
-                            if (body_param.required) {
-                                return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
-                            }
-                            continue ;
-                        }
-                        collected_params.push({ value: req.body[body_param.name], detail: body_param });
-                    }
-                    for (i in parameters.header_params) {
-                        let header_param = parameters.header_params[i];
-                        if (!Object.keys(req.headers).includes(header_param.name)) {
-                            if (header_param.required) {
-                                return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
-                            }
-                            continue ;
-                        }
-                        collected_params.push({ value: req.headers[header_param.name], detail: header_param });
-                    }
-                    for (i in parameters.query_params) {
-                        let query_param = parameters.query_params![i];
-                        if (!Object.keys(req.query).includes(query_param.name)) {
-                            if (query_param.required) {
-                                return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
-                            }
-                            continue ;
-                        }
-                        collected_params.push({ value: req.query[query_param.name], detail: query_param });
-                    }
-                    for (i in parameters.path_params) {
-                        let path_param = parameters.path_params![i];
-                        if (!Object.keys(req.params).includes(path_param.name)) {
-                            if (path_param.required) {
-                                return res.json({ ok: false, error: 'missing_path_param', name: path_param.name });
-                            }
-                            continue ;
-                        }
-                        collected_params.push({ value: req.params[path_param.name], detail: path_param });
-                    }
-                    for (i in collected_params) {
-                        let param = collected_params[i];
-                        let validation : Validation = validate(param.value, param.detail.type);
-                        if (!validation.ok) {
-                            return res.json({ ok: false, error: 'invalid_param', name: param.detail.name, type: param.detail.type });
-                        }
-                        argument_result[param.detail.name] = validation.value;
-                    }
-                    if (parameters.is_file_upload) {
-                        argument_result.file = req.file;
-                    }
-                    if (req.url.indexOf('/ws/')) {
-                        argument_result['express_req'] = req
-                    }
-                    await callback(argument_result, res);
-                } catch(e) {
-                    console.log(e);
-                    res.json({ ok: false, error: 'unknown' });
+                    const results = await Promise.all(parameters.checks.map((check) => check(argument_result)));
+                    if (!results.every((res) => res)) return res.json({ ok: false, error: 'request did not pass check' });
+                } catch {
+                    return res.json({ ok: false, error: 'request did not pass check' });
                 }
-
-            };
-            if (method.toLowerCase() == 'get') {
-                this.app.get(`/${apiPath}${url}`, func);
-            } else if (method.toLowerCase() == "delete") {
-                this.app.delete(`/${apiPath}${url}`, func);
-            } else if (method.toLowerCase() == "put") {
                 if (parameters.is_file_upload) {
-                    this.app.put(`/${apiPath}${url}`, upload.single('file'), func);
+                    argument_result.file = req.file;
                 }
-                else {
-                    this.app.put(`/${apiPath}${url}`, func);
+                if (req.url.indexOf('/ws/')) {
+                    argument_result['express_req'] = req;
                 }
-            } else if(method.toLowerCase() == 'patch'){
-                if (parameters.is_file_upload) {
-                    this.app.patch(`/${apiPath}${url}`, upload.single('file'), func);
-                }
-                else {
-                    this.app.patch(`/${apiPath}${url}`, func);
-                }
-            } else {
-                if (parameters.is_file_upload) {
-                    this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
-                }
-                else {
-                    this.app.post(`/${apiPath}${url}`, func);
-                }
+                await callback(argument_result, res);
+            } catch (e) {
+                console.log(e);
+                res.json({ ok: false, error: 'unknown' });
             }
+        };
+        if (method.toLowerCase() == 'get') {
+            this.app.get(`/${apiPath}${url}`, func);
+        } else if (method.toLowerCase() == 'delete') {
+            this.app.delete(`/${apiPath}${url}`, func);
+        } else if (method.toLowerCase() == 'put') {
+            if (parameters.is_file_upload) {
+                this.app.put(`/${apiPath}${url}`, upload.single('file'), func);
+            } else {
+                this.app.put(`/${apiPath}${url}`, func);
+            }
+        } else if (method.toLowerCase() == 'patch') {
+            if (parameters.is_file_upload) {
+                this.app.patch(`/${apiPath}${url}`, upload.single('file'), func);
+            } else {
+                this.app.patch(`/${apiPath}${url}`, func);
+            }
+        } else {
+            if (parameters.is_file_upload) {
+                this.app.post(`/${apiPath}${url}`, upload.single('file'), func);
+            } else {
+                this.app.post(`/${apiPath}${url}`, func);
+            }
+        }
     }
 }
 
-export function createDocsStub (info: string, version: string, title: string, projectName: keyof typeof projects,
-    baseApiPath: string, tags: {name: string, description: string}[]) {
-    const {protocol, host} = getApiPath(projectName)
-    apiPath = baseApiPath
+export function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: { name: string; description: string }[]) {
+    const { protocol, host } = getApiPath(projectName);
+    apiPath = baseApiPath;
     const docs = {
-        openapi: '3.0.0', info: {
+        openapi: '3.0.0',
+        info: {
             description: info,
-            version, title,
+            version,
+            title,
         },
-        servers: [{url: `${protocol}://${host}/${baseApiPath}`}],
-        tags, paths: {},
+        servers: [{ url: `${protocol}://${host}/${baseApiPath}` }],
+        tags,
+        paths: {},
         components: {
             description: {
                 alwaysok: `Always returns 200. Error indication in the ok field of the response.
-                                Responses other than 200 can only occur in case of a very serious problem`
+                                Responses other than 200 can only occur in case of a very serious problem`,
             },
             property: {
-                ok: { type: 'boolean', description: `true - if operation was successful. false if was error.
+                ok: {
+                    type: 'boolean',
+                    description: `true - if operation was successful. false if was error.
                      if error was, then the field will also be present error - with a short mnemonic
-                     error description` }
-            }
-        }
+                     error description`,
+                },
+            },
+        },
     };
     return docs;
 }
 
-function getApiPath(projectName: keyof typeof projects ): {protocol: string, host: string} {
-    const settings: any = { protocol: is_dev_env ? 'http' : 'https' }
+function getApiPath(projectName: keyof typeof projects): { protocol: string; host: string } {
+    const settings: any = { protocol: is_dev_env ? 'http' : 'https' };
 
     switch (projectName) {
         case projects.calltracking:
@@ -289,10 +302,10 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
             settings.host = is_dev_env ? 'apiproxy.mcn.local' : 'integration.mcn.ru';
             break;
         case projects.base:
-            settings.host = `${is_stage_env? 'base-stage' : 'base'}.mcn.${is_dev_env ? 'local' : 'ru' }`;
+            settings.host = `${is_stage_env ? 'base-stage' : 'base'}.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
         case projects.integration:
-            settings.host = `${is_stage_env ? 'integration-stage' : 'integration'}.mcn.${is_dev_env ? 'local' : 'ru' }`;
+            settings.host = `${is_stage_env ? 'integration-stage' : 'integration'}.mcn.${is_dev_env ? 'local' : 'ru'}`;
             break;
         case projects.integration:
             settings.host = is_stage_env ? 'integration.mcn.local' : 'integration.mcn.ru';
@@ -301,7 +314,7 @@ function getApiPath(projectName: keyof typeof projects ): {protocol: string, hos
             settings.host = is_stage_env ? 'integration.mcn.local' : 'integration.kompaas.tech';
             break;
         default:
-            break;  
+            break;
     }
-    return settings
+    return settings;
 }
