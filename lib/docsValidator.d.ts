@@ -35,7 +35,7 @@ export declare class ApiHelper {
         tags: string[];
         bodyDesc?: string;
         response: any;
-    }, callback: ((params: T & ExpressReq, res: Express.Response) => any)): void;
+    }, callback: (params: T & ExpressReq, res: Express.Response) => any): void;
 }
 export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: {
     name: string;
