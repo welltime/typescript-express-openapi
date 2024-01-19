@@ -84,12 +84,15 @@ function addDocs<T>(method: string, url: string, parameters: Parameters<T>, data
         let i: any;
         for (i in parameters.query_params) {
             const query_item: ParameterDetail = parameters.query_params[i];
+            
+            const example: any = parameters.example ?? {};
+
             methodDocs.parameters.push({
                 name: query_item.name,
                 description: query_item.description,
                 required: query_item.required,
                 in: 'query',
-                schema: query_item.enum ? { type: query_item.type, enum: query_item.enum } : { type: query_item.type },
+                schema: { type: query_item.type, example: example[query_item.name], enum: query_item.enum },
             });
         }
     }
