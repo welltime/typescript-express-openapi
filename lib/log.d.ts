@@ -46,9 +46,7 @@ export declare enum Severity {
     Debug = "debug"
 }
 export declare let logException: (topic: Topic, severity: Severity, exception: Error, subtopic?: SubTopic) => void;
-export declare function logEvent(topic: string, severity: Severity, obj: {
-    [key: string]: string | number;
-}, subtopic?: SubTopic): void;
+export declare function logEvent(topic: string, severity: Severity, obj: any, subtopic?: SubTopic): void;
 export declare function logMessage(topic: string, severity: Severity, message: string, subtopic?: SubTopic): void;
 export declare function logObject(topic: Topic, severity: Severity, logObj: {
     [index: string]: any;
