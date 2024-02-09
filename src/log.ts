@@ -73,12 +73,14 @@ function makeFlatObject(obj: any) {
         }
         const result: any = {};
         for (const [key, value] of Object.entries(obj)) {
-            if (!is_dev_env) {
-                if (process.env.is_running_tests) return;
-                result[key] = `${value}`;
-            } else {
-                result[key] = `${value}\n`;
+            if (!is_dev_env && process.env.is_running_tests) return;
+            if (typeof value == 'object') {
+                const flattenedValue=makeFlatObject(value);
+                for (const [extendedKey, extendedValue] of Object.entries(flattenedValue)){
+                    result[key+'_'+extendedKey]=extendedValue;
+                }
             }
+            else result[key] = `${value}`;
         }
         return result;
     } catch (e) {
@@ -108,7 +110,7 @@ export let logException = function (topic: Topic, severity: Severity, exception:
     }
 };
 
-export function logEvent(topic: string, severity: Severity, obj: { [key: string]: string | number }, subtopic = SubTopic.Unknown) {
+export function logEvent(topic: string, severity: Severity, obj: any, subtopic = SubTopic.Unknown) {
     try {
         if (!is_dev_env) {
             if (process.env.is_running_tests) return;
