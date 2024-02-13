@@ -72,7 +72,7 @@ function makeFlatObject(obj: any) {
             return { value: obj };
         }
         const result: any = {};
-        for (const [key, value] of Object.entries(obj)) {
+        for (const [key, value] of Object.entries(obj ?? {})) {
             if (!is_dev_env && process.env.is_running_tests) return;
             if (typeof value == 'object') {
                 const flattenedValue=makeFlatObject(value);
