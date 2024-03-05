@@ -9,7 +9,8 @@ export declare enum projects {
     base = "base",
     integration = "integration",
     integrationEu = "integrationEu",
-    paidmethods = "paidmethods"
+    paidmethods = "paidmethods",
+    contact_center = "contact-center"
 }
 export declare enum privacy {
     protected = "protected",
