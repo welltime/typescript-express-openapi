@@ -225,7 +225,7 @@ export class ApiHelper {
                         if (typeof or_permissions === 'string'){
                             ok=argument_result.permissions.includes(or_permissions);
                         } else if (Array.isArray(or_permissions)){
-                            ok=or_permissions.some(r => argument_result!.includes(r));
+                            ok=or_permissions.some(r => argument_result.permissions!.includes(r));
                         } else throw new TypeError(`Unknown type of element [${parameters.permissions_required.indexOf(or_permissions)}] in required permissions`)
                         if (!ok){
                             return res.json({ok:false, error: 'missing_permission', permission: or_permissions});                       
