@@ -22,13 +22,14 @@ interface ParameterDetail {
     required: boolean;
     enum?: any[];
 }
-interface Parameters<T> {
+interface Parameters<T, P extends permissions_t> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
     path_params?: ParameterDetail[];
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
+    permissions_required?: P;
     checks: ((obj: T) => Promise<boolean>)[];
 }
 
@@ -41,9 +42,9 @@ interface ExpressReq {
     express_req: Express.Request;
 }
 
-type permission_type=(string[]|string)[]|undefined;
+type permissions_t=(string[]|string)[];
 
-type request_t<T, Permissions extends permission_type> = Permissions extends string[] ? T & ExpressReq & {permissions: string[]} : T & ExpressReq;
+type request_t<T, Permissions extends permissions_t> = Permissions extends string[] ? T & ExpressReq & {permissions: string[]} : T & ExpressReq;
 
 function validateNumber(value: any): Validation {
     return { ok: !isNaN(Number(value)), value: Number(value) };
@@ -66,10 +67,10 @@ function validate(value: any, parameter: ParameterDetail): Validation {
     return { ok: false, value: null };
 }
 
-function addDocs<T>(
+function addDocs<T, P extends permissions_t>(
     method: string, 
     url: string, 
-    parameters: Parameters<T>, 
+    parameters: Parameters<T, P>, 
     data: { 
         description: string; 
         summary: string; 
@@ -165,9 +166,20 @@ function addDocs<T>(
 export class ApiHelper {
     app: any;
     documentationPaths: any;
-    constructor(app: any, documentationPaths: any) {
+    getPermissions?: (req: Express.Request)=>Promise<String[]>;
+
+    /**
+     * Constructs a new instance of the ApiHelper class.
+     *
+     * @param app - The Express application instance.
+     * @param documentationPaths - The paths to the OpenAPI documentation files.
+     * @param getPermissions - Function to retrieve the permissions for a request. Required if permissions are used. 
+     */
+    constructor(app: any, documentationPaths: any, getPermissions?: (req: Express.Request)=>Promise<String[]>) {
         this.documentationPaths = documentationPaths;
         this.app = app;
+        this.getPermissions = getPermissions;
+
     }
 
     /**
@@ -177,12 +189,11 @@ export class ApiHelper {
      * @param parameters An object containing the parameters for the route.
      * @param docs An object containing the documentation for the route.
      * @param required_permissions An array of permissions required to access the route. 
-     * Middleware providing request granted permissions should exist. Permissions should be defined in req.permissions field.
-     * In case if several permission have to be met use arrays as elements for OR operation.
+     * In case of several permissions have to be met use arrays as elements for OR operation.
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends permission_type>(
+    add<T, P extends permissions_t>(
         url: string,
         method: 
         `${'g'|'G'}${'e'|'E'}${'T'|'t'}`
@@ -190,7 +201,7 @@ export class ApiHelper {
         |`${'P'|'p'}${'a'|'A'}${'T'|'t'}${'C'|'c'}${'H'|'h'}`
         |`${'P'|'p'}${'U'|'u'}${'T'|'t'}`
         |`${'D'|'e'}${'L'|'l'}${'E'|'e'}${'T'|'t'}${'E'|'e'}`, 
-        parameters: Parameters<T>, 
+        parameters: Parameters<T, P>, 
         docs: { 
             description: string; 
             summary: string; 
@@ -198,30 +209,29 @@ export class ApiHelper {
             bodyDesc?: string;
             response: any 
         },
-        required_pemissions: permission_type=undefined,
         callback: (params: request_t<T, P>, res: Express.Response) => any
     ) {
         addDocs(method, url, parameters, docs, this.documentationPaths);
-        let func = async (req: Express.Request & {permissions?: string[]}, res: Express.Response) => {
+        let func = async (req: Express.Request, res: Express.Response) => {
             try {
-                if (required_pemissions){
-                    if (!req.permissions)
-                        throw new Error('Cannot check required permissions becase no middleware was set. Add permissions to req.permissions');
-                    for (let or_permissions of required_pemissions){
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                let argument_result: any={}
+                if (parameters.permissions_required){
+                    if (!this.getPermissions)
+                        throw new Error('Cannot check required permissions becase no getPermission function was provided. Check initialization');
+                    argument_result.permissions = await this.getPermissions(req);
+                    for (let or_permissions of parameters.permissions_required){
                         let ok: boolean;
                         if (typeof or_permissions === 'string'){
-                            ok=req.permissions.includes(or_permissions);
+                            ok=argument_result.permissions.includes(or_permissions);
                         } else if (Array.isArray(or_permissions)){
-                            ok=or_permissions.some(r => req.permissions!.includes(r));
-                        } else throw new TypeError(`Unknown type of element [${required_pemissions.indexOf(or_permissions)}] in required permissions`)
+                            ok=or_permissions.some(r => argument_result!.includes(r));
+                        } else throw new TypeError(`Unknown type of element [${parameters.permissions_required.indexOf(or_permissions)}] in required permissions`)
                         if (!ok){
-                            res.send({ok:false, error: 'missing_permission', permission: or_permissions});
-                            return;                                    
+                            return res.json({ok:false, error: 'missing_permission', permission: or_permissions});                       
                         }
                     }   
                 }
-                res.setHeader('Access-Control-Allow-Origin', '*');
-                let argument_result: any = {};
                 let collected_params: { value: any; detail: ParameterDetail }[] = [];
                 let i: any;
                 for (i in parameters.body_params) {
