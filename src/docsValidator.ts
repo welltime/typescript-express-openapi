@@ -200,7 +200,7 @@ export class ApiHelper {
         |`${'P'|'p'}${'o'|'O'}${'s'|'s'}${'T'|'t'}`
         |`${'P'|'p'}${'a'|'A'}${'T'|'t'}${'C'|'c'}${'H'|'h'}`
         |`${'P'|'p'}${'U'|'u'}${'T'|'t'}`
-        |`${'D'|'e'}${'L'|'l'}${'E'|'e'}${'T'|'t'}${'E'|'e'}`, 
+        |`${'D'|'e'}${'E'|'e'}${'L'|'l'}${'E'|'e'}${'T'|'t'}${'E'|'e'}`, 
         parameters: Parameters<T, P>, 
         docs: { 
             description: string; 
