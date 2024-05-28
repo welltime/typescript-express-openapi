@@ -219,11 +219,10 @@ export class ApiHelper {
             try {
                 res.setHeader('Access-Control-Allow-Origin', '*');
                 let argument_result: any={}
-                argument_result.permissions = this.getPermissions?.(req);
+                argument_result.permissions = await this.getPermissions?.(req);
                 if (Array.isArray(parameters.permissions_required)){
                     if (!this.getPermissions)
                         throw new Error('Cannot check required permissions because no getPermission function was provided. Check initialization');
-                    await argument_result.permission;
                     for (let or_permissions of parameters.permissions_required){
                         let ok: boolean;
                         if (typeof or_permissions === 'string'){
@@ -292,7 +291,6 @@ export class ApiHelper {
                 if (req.url.indexOf('/ws/')) {
                     argument_result['express_req'] = req;
                 }
-                await argument_result.permissions;
                 try {
                     const results = await Promise.all(parameters.checks.map((check) => check(argument_result)));
                     if (!results.every((res) => res)) return res.json({ ok: false, error: 'request did not pass check' });
