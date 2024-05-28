@@ -21,11 +21,14 @@ interface Parameters<T, P extends (string | string[])[] | 'any' | undefined> {
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     permissions_required?: P;
-    checks: ((obj: T) => Promise<boolean>)[];
+    checks: ((obj: Req<T, P>) => Promise<boolean>)[];
 }
 interface ExpressReq {
     express_req: Express.Request;
 }
+declare type Req<T, P> = P extends undefined ? T & ExpressReq : T & ExpressReq & {
+    permissions?: string[];
+};
 export declare class ApiHelper {
     app: any;
     documentationPaths: any;
@@ -55,9 +58,7 @@ export declare class ApiHelper {
         tags: string[];
         bodyDesc?: string;
         response: any;
-    }, callback: (params: P extends undefined ? T & ExpressReq : T & ExpressReq & {
-        permissions?: string[];
-    }, res: Express.Response) => any): void;
+    }, callback: (params: Req<T, P>, res: Express.Response) => any): void;
 }
 export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: {
     name: string;

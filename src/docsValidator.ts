@@ -30,7 +30,7 @@ interface Parameters<T, P extends (string|string[])[] | 'any' | undefined> {
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     permissions_required?: P;
-    checks: ((obj: T) => Promise<boolean>)[];
+    checks: ((obj: Req<T, P>) => Promise<boolean>)[];
 }
 
 interface Validation {
@@ -160,6 +160,7 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
         }
     }
 }
+type Req <T, P>=P extends undefined ? T & ExpressReq : T & ExpressReq & {permissions: string[]}
 
 export class ApiHelper {
     app: any;
@@ -207,7 +208,7 @@ export class ApiHelper {
             bodyDesc?: string;
             response: any 
         },
-        callback: (params: P extends undefined ? T & ExpressReq : T & ExpressReq & {permissions?: string[]}, res: Express.Response) => any
+        callback: (params: Req<T,P>, res: Express.Response) => any
     ) {
         if (this.getPermissions && !parameters.permissions_required){
             console.warn(`You specified get_permissions function but didn't provided any permission for ${method.toUpperCase()} ${url} endpoint.
@@ -285,12 +286,6 @@ export class ApiHelper {
                     }
                     argument_result[param.detail.name] = validation.value;
                 }
-                try {
-                    const results = await Promise.all(parameters.checks.map((check) => check(argument_result)));
-                    if (!results.every((res) => res)) return res.json({ ok: false, error: 'request did not pass check' });
-                } catch {
-                    return res.json({ ok: false, error: 'request did not pass check' });
-                }
                 if (parameters.is_file_upload) {
                     argument_result.file = req.file;
                 }
@@ -298,6 +293,12 @@ export class ApiHelper {
                     argument_result['express_req'] = req;
                 }
                 await argument_result.permissions;
+                try {
+                    const results = await Promise.all(parameters.checks.map((check) => check(argument_result)));
+                    if (!results.every((res) => res)) return res.json({ ok: false, error: 'request did not pass check' });
+                } catch {
+                    return res.json({ ok: false, error: 'request did not pass check' });
+                }
                 await callback(argument_result, res);
             } catch (e) {
                 console.log(e);
