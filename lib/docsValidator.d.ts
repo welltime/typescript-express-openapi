@@ -27,7 +27,7 @@ interface ExpressReq {
     express_req: Express.Request;
 }
 declare type Req<T, P> = P extends undefined ? T & ExpressReq : T & ExpressReq & {
-    permissions?: string[];
+    permissions: string[];
 };
 export declare class ApiHelper {
     app: any;
@@ -52,7 +52,7 @@ export declare class ApiHelper {
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends (string | string[])[] | 'any' | undefined>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'s' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
+    add<T, P extends (string | string[])[] | 'any' | undefined>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'S' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
         description: string;
         summary: string;
         tags: string[];
