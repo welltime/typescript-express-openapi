@@ -13,7 +13,7 @@ interface ParameterDetail {
     required: boolean;
     enum?: any[];
 }
-interface Parameters<T, P extends permissions_t> {
+interface Parameters<T, P extends (string | string[])[] | 'any' | undefined> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
@@ -21,15 +21,14 @@ interface Parameters<T, P extends permissions_t> {
     query_params?: ParameterDetail[];
     header_params: ParameterDetail[];
     permissions_required?: P;
-    checks: ((obj: T) => Promise<boolean>)[];
+    checks: ((obj: Req<T, P>) => Promise<boolean>)[];
 }
 interface ExpressReq {
     express_req: Express.Request;
 }
-declare type permissions_t = (string[] | string)[];
-declare type request_t<T, Permissions extends permissions_t> = Permissions extends string[] ? T & ExpressReq & {
+declare type Req<T, P> = P extends undefined ? T & ExpressReq : T & ExpressReq & {
     permissions: string[];
-} : T & ExpressReq;
+};
 export declare class ApiHelper {
     app: any;
     documentationPaths: any;
@@ -53,13 +52,13 @@ export declare class ApiHelper {
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends permissions_t>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'s' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
+    add<T, P extends (string | string[])[] | 'any' | undefined>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'S' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
         description: string;
         summary: string;
         tags: string[];
         bodyDesc?: string;
         response: any;
-    }, callback: (params: request_t<T, P>, res: Express.Response) => any): void;
+    }, callback: (params: Req<T, P>, res: Express.Response) => any): void;
 }
 export declare function createDocsStub(info: string, version: string, title: string, projectName: keyof typeof projects, baseApiPath: string, tags: {
     name: string;
