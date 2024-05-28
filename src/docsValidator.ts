@@ -22,7 +22,7 @@ interface ParameterDetail {
     required: boolean;
     enum?: any[];
 }
-interface Parameters<T, P extends permissions_t> {
+interface Parameters<T, P extends (string|string[])[] | 'any' | undefined> {
     example: T;
     body_params: ParameterDetail[];
     is_file_upload?: boolean;
@@ -42,9 +42,7 @@ interface ExpressReq {
     express_req: Express.Request;
 }
 
-type permissions_t=(string[]|string)[];
 
-type request_t<T, Permissions extends permissions_t> = Permissions extends string[] ? T & ExpressReq & {permissions: string[]} : T & ExpressReq;
 
 function validateNumber(value: any): Validation {
     return { ok: !isNaN(Number(value)), value: Number(value) };
@@ -67,7 +65,7 @@ function validate(value: any, parameter: ParameterDetail): Validation {
     return { ok: false, value: null };
 }
 
-function addDocs<T, P extends permissions_t>(
+function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
     method: string, 
     url: string, 
     parameters: Parameters<T, P>, 
@@ -193,7 +191,7 @@ export class ApiHelper {
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends permissions_t>(
+    add<T, P extends (string|string[])[]|'any'|undefined>(
         url: string,
         method: 
         `${'g'|'G'}${'e'|'E'}${'T'|'t'}`
@@ -209,17 +207,22 @@ export class ApiHelper {
             bodyDesc?: string;
             response: any 
         },
-        callback: (params: request_t<T, P>, res: Express.Response) => any
+        callback: (params: P extends undefined ? T & ExpressReq : T & ExpressReq & {permissions?: string[]}, res: Express.Response) => any
     ) {
+        if (this.getPermissions && !parameters.permissions_required){
+            console.warn(`You specified get_permissions function but didn't provided any permission for ${method.toUpperCase()} ${url} endpoint.
+            If that is on purpose set permissions_required param to 'any' explicitly, to remove this warning`);
+        }
         addDocs(method, url, parameters, docs, this.documentationPaths);
         let func = async (req: Express.Request, res: Express.Response) => {
             try {
                 res.setHeader('Access-Control-Allow-Origin', '*');
                 let argument_result: any={}
-                if (parameters.permissions_required){
+                argument_result.permissions = this.getPermissions?.(req);
+                if (Array.isArray(parameters.permissions_required)){
                     if (!this.getPermissions)
-                        throw new Error('Cannot check required permissions becase no getPermission function was provided. Check initialization');
-                    argument_result.permissions = await this.getPermissions(req);
+                        throw new Error('Cannot check required permissions because no getPermission function was provided. Check initialization');
+                    await argument_result.permission;
                     for (let or_permissions of parameters.permissions_required){
                         let ok: boolean;
                         if (typeof or_permissions === 'string'){
@@ -294,6 +297,7 @@ export class ApiHelper {
                 if (req.url.indexOf('/ws/')) {
                     argument_result['express_req'] = req;
                 }
+                await argument_result.permissions;
                 await callback(argument_result, res);
             } catch (e) {
                 console.log(e);
