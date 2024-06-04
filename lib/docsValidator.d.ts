@@ -56,6 +56,7 @@ export declare class ApiHelper {
         description: string;
         summary: string;
         tags: string[];
+        deprecated?: boolean;
         bodyDesc?: string;
         response: any;
     }, callback: (params: Req<T, P>, res: Express.Response) => any): void;

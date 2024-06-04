@@ -72,7 +72,8 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
     data: { 
         description: string; 
         summary: string; 
-        tags: string[]; 
+        tags: string[];
+        deprecated?: boolean; 
         bodyDesc?: string; 
         response: any 
     }, 
@@ -86,6 +87,7 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
     methodDocs.description = data.description;
     methodDocs.summary = data.summary;
     methodDocs.tags = data.tags;
+    methodDocs.deprecated = data.deprecated || false;
     methodDocs.responses = {};
     methodDocs.responses['200'] = {};
     methodDocs.responses['200'].description = '#/components/description/alwaysok';
@@ -204,7 +206,8 @@ export class ApiHelper {
         docs: { 
             description: string; 
             summary: string; 
-            tags: string[]; 
+            tags: string[];
+            deprecated?: boolean; 
             bodyDesc?: string;
             response: any 
         },
