@@ -77,10 +77,10 @@ function makeFlatObject(obj: any) {
             if (typeof value == 'object') {
                 const flattenedValue=makeFlatObject(value);
                 for (const [extendedKey, extendedValue] of Object.entries(flattenedValue)){
-                    result[key+'_'+extendedKey]=extendedValue;
+                    result[(key+'_'+extendedKey).toLowerCase()]=extendedValue;
                 }
             }
-            else result[key] = `${value}`;
+            else result[key.toLowerCase()] = `${value}`;
         }
         return result;
     } catch (e) {
