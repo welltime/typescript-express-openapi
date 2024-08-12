@@ -1,6 +1,8 @@
+import { BaseLogger } from 'pino';
 export declare enum Topic {
     Unknown = "unknown",
     paymentProcessed = "payment processed",
+    Logger = "logger",
     Init = "init",
     Api = "api",
     Adapter = "adapter",
@@ -45,12 +47,13 @@ export declare enum Severity {
     Informational = "info",
     Debug = "debug"
 }
-export declare let logException: (topic: Topic, severity: Severity, exception: Error, subtopic?: SubTopic) => void;
-export declare function logEvent(topic: string, severity: Severity, obj: any, subtopic?: SubTopic): void;
-export declare function logMessage(topic: string, severity: Severity, message: string, subtopic?: SubTopic): void;
-export declare function logObject(topic: Topic, severity: Severity, logObj: {
+export declare const logObject: (topic: Topic, severity: Severity, logObj: {
     [index: string]: any;
-}, subtopic?: SubTopic): void;
+}, subtopic?: SubTopic) => void;
+export declare const logEvent: (topic: Topic, severity: Severity, obj: any, subtopic?: SubTopic) => void;
+export declare const logException: (topic: Topic, severity: Severity, exception: Error, subtopic?: SubTopic) => void;
+export declare const logMessage: (topic: Topic, severity: Severity, message: string, subtopic?: SubTopic) => void;
+export declare const usePino: (pino: BaseLogger) => void;
 declare const _default: {
     Topic: typeof Topic;
     SubTopic: typeof SubTopic;
