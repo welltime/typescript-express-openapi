@@ -30,6 +30,7 @@
     "multer": "^1.4.2"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/multer": "^1.4.11",
     "@types/node": "^17.0.45",
     "pino": "^9.3.2",
