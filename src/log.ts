@@ -1,10 +1,11 @@
 import { is_dev_env } from './constants';
 import chalk from 'chalk';
+import {BaseLogger} from 'pino';
 
 export enum Topic {
     Unknown = 'unknown',
     paymentProcessed = 'payment processed',
-
+    Logger = 'logger',
     Init = 'init',
     Api = 'api',
     Adapter = 'adapter',
@@ -17,9 +18,9 @@ export enum Topic {
     Timer = 'timer',
 }
 
+
 export enum SubTopic {
     Unknown = 'unknown',
-
     Rabbitmq = 'rabbitmq',
     Rest = 'rest',
     ScenarioTranslation = 'scenariotranslation',
@@ -61,114 +62,199 @@ enum LogType {
     message = 'message',
     object = 'object'
 }
-
-function getStack() {
-    return new Error().stack;
-}
-
-function makeFlatObject(obj: any) {
-    try {
-        if (typeof obj !== 'object' && obj !== null) {
-            return { value: obj };
-        }
-        const result: any = {};
-        for (const [key, value] of Object.entries(obj ?? {})) {
-            if (!is_dev_env && process.env.is_running_tests) return;
-            if (typeof value == 'object') {
-                const flattenedValue=makeFlatObject(value);
-                for (const [extendedKey, extendedValue] of Object.entries(flattenedValue)){
-                    result[key+'_'+extendedKey]=extendedValue;
-                }
-            }
-            else result[key] = `${value}`;
-        }
-        return result;
-    } catch (e) {
-        console.log(e);
+class Logger{
+    pino?: BaseLogger;
+    private getStack() {
+        return new Error().stack;
     }
-    return {};
-}
+    usePino(pino:BaseLogger){
+        this.pino=pino;
+    }
+    private log(logObj: {
+        stack?: string,
+        topic: Topic;
+        severity: Severity,
+        logType: LogType,
+        subtopic?: SubTopic,
+        body: string|object
+    }|string){
+        if (!this.pino){
+            console.log(typeof logObj==='object' ? JSON.stringify(logObj) : logObj)
+        } else {
+            if (typeof logObj === 'object'){
+                switch (logObj.severity){
+                    case Severity.Emergency:
+                        this.pino.fatal(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Alert:
+                        this.pino.warn(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Critical:
+                        this.pino.fatal(this.makeFlatObject(logObj))
+                        break;                    
+                    case Severity.Error:
+                        this.pino.error(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Warning:
+                        this.pino.warn(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Notice:
+                        this.pino.info(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Informational:
+                        this.pino.info(this.makeFlatObject(logObj))
+                        break;
+                    case Severity.Debug:
+                        this.pino.debug(this.makeFlatObject(logObj))
+                        break;
+                    default:
+                        this.pino.trace(this.makeFlatObject(logObj))
+                }
+            } 
+            else 
+                this.pino.trace(logObj)
+        }
+    }
+    private makeFlatObject(obj: any): Record<string, string|number> {
+        try {
+            if (typeof obj !== 'object' && obj !== null) {
+                return { value: obj };
+            }
+            const result: any = {};
+            for (const [key, value] of Object.entries(obj ?? {})) {
+                if (!is_dev_env && process.env.is_running_tests) return {};
+                if (typeof value == 'object') {
+                    const flattenedValue=this.makeFlatObject(value);
+                    for (const [extendedKey, extendedValue] of Object.entries(flattenedValue)){
+                        result[(key+'_'+extendedKey).toLowerCase()]=extendedValue;
+                    }
+                }
+                else result[key.toLowerCase()] = `${value}`;
+            }
+            return result;
+        } catch (e) {
+            this.log({
+                topic: Topic.Logger,
+                severity: Severity.Error,
+                logType: LogType.exception,
+                body:{
+                    event: 'Error in makeFlatObject',
+                    error: e
+                }
+            });
+        }
+        return {};
+    }
 
-export let logException = function (topic: Topic, severity: Severity, exception: Error, subtopic: SubTopic = SubTopic.Unknown) {
-    try {
-        if (!is_dev_env) {
+    logException(topic: Topic, severity: Severity, exception: Error, subtopic: SubTopic = SubTopic.Unknown) {
+        try {
             if (process.env.is_running_tests) return;
-            console.log(JSON.stringify({
-                message: exception.message,
+            this.log({
+                body: {
+                    message: exception.message,
+                    catchStack: this.getStack()
+                },
                 stack: exception.stack,
-                catchStack: getStack(),
                 topic,
                 severity,
                 logType: LogType.exception,
                 subtopic
-            }));
-        } else {
-            console.log(chalk.red.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nErrorMessage: ${exception.message}\nseverity: ${severity}\nstack: ${exception.stack}\n`));
+            });
+        } catch (e) {
+            this.log({
+                topic: Topic.Logger,
+                severity: Severity.Error,
+                logType: LogType.exception,
+                body:{
+                    event: 'Error in makeFlatObject',
+                    error: e
+                }
+            });
         }
-    } catch (e) {
-        console.log(e);
-    }
-};
+    };
 
-export function logEvent(topic: string, severity: Severity, obj: any, subtopic = SubTopic.Unknown) {
-    try {
-        if (!is_dev_env) {
+    logEvent(topic: Topic, severity: Severity, obj: any, subtopic = SubTopic.Unknown) {
+        try {
             if (process.env.is_running_tests) return;
-            console.log(JSON.stringify({
+            this.log({
                 topic,
                 subtopic,
                 severity,
-                stack: getStack(),
-                ...makeFlatObject(obj),
+                stack: this.getStack(),
+                body: this.makeFlatObject(obj),
                 logType: LogType.event
-            }));
-        } else {
-            console.log(chalk.cyanBright.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nInfo: ${JSON.stringify({ ...makeFlatObject(obj) })}\nseverity: ${severity}\n`));
+            });
+        } catch (e) {
+            this.log({
+                topic: Topic.Logger,
+                severity: Severity.Error,
+                logType: LogType.exception,
+                body:{
+                    event: 'Error in makeFlatObject',
+                    error: e
+                }
+            });
         }
-    } catch (e) {
-        console.log(e);
     }
-}
 
-export function logMessage(topic: string, severity: Severity, message: string, subtopic = SubTopic.Unknown) {
-    try {
-        if (!is_dev_env) {
+    logMessage(topic: Topic, severity: Severity, message: string, subtopic = SubTopic.Unknown) {
+        try {
             if (process.env.is_running_tests) return;
-            console.log(JSON.stringify({
+            this.log({
                 topic,
                 subtopic,
                 severity,
-                stack: getStack(),
+                stack: this.getStack(),
                 logType: LogType.message,
-                message
-            }));
-        } else {
-            console.log(chalk.green.bold(`logType: ${LogType.message} \nmessage: ${message} \n`));
+                body: message
+            });
+        } catch (e) {
+            this.log({
+                topic: Topic.Logger,
+                severity: Severity.Error,
+                logType: LogType.exception,
+                body:{
+                    event: 'Error in logMessage',
+                    error: e
+                }
+            });
         }
-    } catch (e) {
-        console.log(e);
     }
-}
-
-export function logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
-    try {
-        if (!is_dev_env) {
+    logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
+        try {
             if (process.env.is_running_tests) return;
-            console.log(JSON.stringify({
+            this.log(JSON.stringify({
                 topic,
                 subtopic,
                 severity,
-                stack: getStack(),
+                stack: this.getStack(),
                 logType: LogType.object,
                 ...logObj
             }));
-        } else {
-            console.log(chalk.green.bold(`logType: ${LogType.object} \nmessage: ${JSON.stringify(logObj)} \n`));
+        } catch (e) {
+            this.log({
+                topic: Topic.Logger,
+                severity: Severity.Error,
+                logType: LogType.exception,
+                body:{
+                    event: 'Error in makeFlatObject',
+                    error: e
+                }
+            });
         }
-    } catch (e) {
-        console.log(e);
     }
 }
+
+const logger = new Logger();
+/**
+ * @deprecated Use logEvent() instead for proper logging
+*/
+export const logObject = logger.logObject.bind(logger);
+export const logEvent = logger.logEvent.bind(logger);
+export const logException = logger.logException.bind(logger);
+export const logMessage = logger.logMessage.bind(logger);
+export const usePino = logger.usePino.bind(logger);
+
 
 export default {
     Topic, SubTopic, Severity,
