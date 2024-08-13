@@ -79,7 +79,7 @@ class Logger{
         body: string|object
     }|string){
         if (!this.pino){
-            console.log(JSON.stringify(logObj))
+            console.log(typeof logObj==='object' ? JSON.stringify(logObj) : logObj)
         } else {
             if (typeof logObj === 'object'){
                 switch (logObj.severity){
