@@ -25,12 +25,12 @@
   "license": "ISC",
   "homepage": "https://github.com/welltime/typescript-express-openapi#readme",
   "dependencies": {
+    "@types/express": "^4.17.21",
     "chalk": "^4.1.2",
     "express": "^4.17.1",
     "multer": "^1.4.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/multer": "^1.4.11",
     "@types/node": "^17.0.45",
     "pino": "^9.3.2",
