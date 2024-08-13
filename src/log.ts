@@ -220,9 +220,6 @@ class Logger{
             });
         }
     }
-    /**
-     * @deprecated Use logEvent instead for proper logging
-     */
     logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
         try {
             if (process.env.is_running_tests) return;
@@ -249,6 +246,9 @@ class Logger{
 }
 
 const logger = new Logger();
+/**
+ * @deprecated Use logEvent() instead for proper logging
+*/
 export const logObject = logger.logObject.bind(logger);
 export const logEvent = logger.logEvent.bind(logger);
 export const logException = logger.logException.bind(logger);

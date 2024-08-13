@@ -47,6 +47,9 @@ export declare enum Severity {
     Informational = "info",
     Debug = "debug"
 }
+/**
+ * @deprecated Use logEvent() instead for proper logging
+*/
 export declare const logObject: (topic: Topic, severity: Severity, logObj: {
     [index: string]: any;
 }, subtopic?: SubTopic) => void;
