@@ -148,22 +148,18 @@ class Logger{
 
     logException(topic: Topic, severity: Severity, exception: Error, subtopic: SubTopic = SubTopic.Unknown) {
         try {
-            if (!is_dev_env) {
-                if (process.env.is_running_tests) return;
-                this.log({
-                    body: {
-                        message: exception.message,
-                        catchStack: this.getStack()
-                    },
-                    stack: exception.stack,
-                    topic,
-                    severity,
-                    logType: LogType.exception,
-                    subtopic
-                });
-            } else {
-                this.log(chalk.red.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nErrorMessage: ${exception.message}\nseverity: ${severity}\nstack: ${exception.stack}\n`));
-            }
+            if (process.env.is_running_tests) return;
+            this.log({
+                body: {
+                    message: exception.message,
+                    catchStack: this.getStack()
+                },
+                stack: exception.stack,
+                topic,
+                severity,
+                logType: LogType.exception,
+                subtopic
+            });
         } catch (e) {
             this.log({
                 topic: Topic.Logger,
@@ -179,19 +175,16 @@ class Logger{
 
     logEvent(topic: Topic, severity: Severity, obj: any, subtopic = SubTopic.Unknown) {
         try {
-            if (!is_dev_env) {
-                if (process.env.is_running_tests) return;
-                this.log({
-                    topic,
-                    subtopic,
-                    severity,
-                    stack: this.getStack(),
-                    body: this.makeFlatObject(obj),
-                    logType: LogType.event
-                });
-            } else {
-                this.log(chalk.cyanBright.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nInfo: ${JSON.stringify({ ...this.makeFlatObject(obj) })}\nseverity: ${severity}\n`));
-            }
+            if (process.env.is_running_tests) return;
+            this.log({
+                topic,
+                subtopic,
+                severity,
+                stack: this.getStack(),
+                body: this.makeFlatObject(obj),
+                logType: LogType.event
+            });
+            this.log(chalk.cyanBright.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nInfo: ${JSON.stringify({ ...this.makeFlatObject(obj) })}\nseverity: ${severity}\n`));
         } catch (e) {
             this.log({
                 topic: Topic.Logger,
@@ -207,19 +200,15 @@ class Logger{
 
     logMessage(topic: Topic, severity: Severity, message: string, subtopic = SubTopic.Unknown) {
         try {
-            if (!is_dev_env) {
-                if (process.env.is_running_tests) return;
-                this.log({
-                    topic,
-                    subtopic,
-                    severity,
-                    stack: this.getStack(),
-                    logType: LogType.message,
-                    body: message
-                });
-            } else {
-                this.log(chalk.green.bold(`logType: ${LogType.message} \nmessage: ${message} \n`));
-            }
+            if (process.env.is_running_tests) return;
+            this.log({
+                topic,
+                subtopic,
+                severity,
+                stack: this.getStack(),
+                logType: LogType.message,
+                body: message
+            });
         } catch (e) {
             this.log({
                 topic: Topic.Logger,
@@ -235,19 +224,15 @@ class Logger{
 
     logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
         try {
-            if (!is_dev_env) {
-                if (process.env.is_running_tests) return;
-                this.log(JSON.stringify({
-                    topic,
-                    subtopic,
-                    severity,
-                    stack: this.getStack(),
-                    logType: LogType.object,
-                    ...logObj
-                }));
-            } else {
-                this.log(chalk.green.bold(`logType: ${LogType.object} \nmessage: ${JSON.stringify(logObj)} \n`));
-            }
+            if (process.env.is_running_tests) return;
+            this.log(JSON.stringify({
+                topic,
+                subtopic,
+                severity,
+                stack: this.getStack(),
+                logType: LogType.object,
+                ...logObj
+            }));
         } catch (e) {
             this.log({
                 topic: Topic.Logger,
