@@ -184,7 +184,6 @@ class Logger{
                 body: this.makeFlatObject(obj),
                 logType: LogType.event
             });
-            this.log(chalk.cyanBright.bold(`topic: ${topic}\nsubTopic: ${subtopic}\nInfo: ${JSON.stringify({ ...this.makeFlatObject(obj) })}\nseverity: ${severity}\n`));
         } catch (e) {
             this.log({
                 topic: Topic.Logger,
@@ -215,13 +214,15 @@ class Logger{
                 severity: Severity.Error,
                 logType: LogType.exception,
                 body:{
-                    event: 'Error in makeFlatObject',
+                    event: 'Error in logMessage',
                     error: e
                 }
             });
         }
     }
-
+    /**
+     * @deprecated Use logEvent instead for proper logging
+     */
     logObject(topic: Topic, severity: Severity, logObj: { [index: string]: any }, subtopic = SubTopic.Unknown) {
         try {
             if (process.env.is_running_tests) return;
