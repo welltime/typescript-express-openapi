@@ -16,6 +16,7 @@ export enum Topic {
     Rabbitmq = 'rabbitmq',
     Handler = 'handler',
     Timer = 'timer',
+    Payment = 'payment'
 }
 
 
@@ -34,6 +35,7 @@ export enum SubTopic {
     McnWidget = 'mcn-widget',
     InfiniteLoopBan = 'infiniteloopban',
     Noinit = 'noinit',
+    Yookassa = 'yookassa',
 
     OldMessagesFix = 'OldMessagesFix',
     AnalyticsFix = 'AnalyticsFix',
