@@ -12,7 +12,8 @@ export declare enum Topic {
     MessageCount = "message-count",
     Rabbitmq = "rabbitmq",
     Handler = "handler",
-    Timer = "timer"
+    Timer = "timer",
+    Payment = "payment"
 }
 export declare enum SubTopic {
     Unknown = "unknown",
@@ -29,6 +30,7 @@ export declare enum SubTopic {
     McnWidget = "mcn-widget",
     InfiniteLoopBan = "infiniteloopban",
     Noinit = "noinit",
+    Yookassa = "yookassa",
     OldMessagesFix = "OldMessagesFix",
     AnalyticsFix = "AnalyticsFix",
     LongTimerEvent = "LongTimerEvent",
