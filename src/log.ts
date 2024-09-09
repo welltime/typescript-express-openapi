@@ -131,6 +131,7 @@ class Logger{
                         result[(key+'_'+extendedKey).toLowerCase()]=extendedValue;
                     }
                 }
+                else if (typeof value =='number' || typeof value=='boolean') result[key.toLowerCase()] = value;
                 else result[key.toLowerCase()] = `${value}`;
             }
             return result;
