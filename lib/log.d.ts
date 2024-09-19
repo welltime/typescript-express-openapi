@@ -13,7 +13,9 @@ export declare enum Topic {
     Rabbitmq = "rabbitmq",
     Handler = "handler",
     Timer = "timer",
-    Payment = "payment"
+    Payment = "payment",
+    Kafka = "kafka",
+    KafkaError = "kafka-error"
 }
 export declare enum SubTopic {
     Unknown = "unknown",
