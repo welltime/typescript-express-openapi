@@ -38,6 +38,7 @@ export enum SubTopic {
     InfiniteLoopBan = 'infiniteloopban',
     Noinit = 'noinit',
     Yookassa = 'yookassa',
+    Variables = 'variables',
 
     OldMessagesFix = 'OldMessagesFix',
     AnalyticsFix = 'AnalyticsFix',
