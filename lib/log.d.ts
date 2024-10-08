@@ -34,6 +34,7 @@ export declare enum SubTopic {
     Noinit = "noinit",
     Yookassa = "yookassa",
     Variables = "variables",
+    Mailing = "mailing",
     OldMessagesFix = "OldMessagesFix",
     AnalyticsFix = "AnalyticsFix",
     LongTimerEvent = "LongTimerEvent",
