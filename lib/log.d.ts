@@ -15,7 +15,8 @@ export declare enum Topic {
     Timer = "timer",
     Payment = "payment",
     Kafka = "kafka",
-    KafkaError = "kafka-error"
+    KafkaError = "kafka-error",
+    Mailing = "mailing"
 }
 export declare enum SubTopic {
     Unknown = "unknown",
