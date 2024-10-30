@@ -39,6 +39,7 @@ export enum SubTopic {
     InfiniteLoopBan = 'infiniteloopban',
     Noinit = 'noinit',
     Yookassa = 'yookassa',
+    Tinkoff = 'tinkoff',
     Variables = 'variables',
     Mailing = 'mailing',
 
