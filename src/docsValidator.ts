@@ -8,6 +8,8 @@ const upload = multer({ limits: { fileSize: 1024 * 1024 * 25 } }); // 25 мег�
 apiPath задается в createDocsStub
 */
 let apiPath: string = '';
+const validations = { number: validateNumber, string: validateString, boolean: validateBoolean, any: validateAny } as const;
+
 
 /**
  * Этот класс призван.
@@ -15,20 +17,20 @@ let apiPath: string = '';
  * 2. Предоставлять аргументы API запроса в виде понятного typescript типа
  * 3. Предоставлять документацию
  */
-interface ParameterDetail {
-    name: string;
-    type: string;
+interface ParameterDetail<T extends Record<string, any> = Record<string, any>> {
+    name: keyof T;
+    type: keyof typeof validations;
     description: string;
     required: boolean;
     enum?: any[];
 }
-interface Parameters<T, P extends (string|string[])[] | 'any' | undefined> {
+interface Parameters<T extends Record<string, any>, P extends (string|string[])[] | 'any' | undefined> {
     example: T;
-    body_params: ParameterDetail[];
+    body_params?: ParameterDetail<T>[];
     is_file_upload?: boolean;
-    path_params?: ParameterDetail[];
-    query_params?: ParameterDetail[];
-    header_params: ParameterDetail[];
+    path_params?: ParameterDetail<T>[];
+    query_params?: ParameterDetail<T>[];
+    header_params: ParameterDetail<T>[];
     permissions_required?: P;
     checks: ((obj: Req<T, P>) => Promise<boolean>)[];
 }
@@ -57,15 +59,14 @@ function validateBoolean(value: any): Validation {
     return { ok: value + '' == 'true' || value + '' == 'false', value: value + '' == 'true' };
 }
 
-function validate(value: any, parameter: ParameterDetail): Validation {
-    const validations: any = { number: validateNumber, string: validateString, boolean: validateBoolean, any: validateAny };
+function validate<T extends Record<string, any>>(value: any, parameter: ParameterDetail<T>): Validation {
     if (parameter.type in validations) {
         return validations[parameter.type](value);
     }
     return { ok: false, value: null };
 }
 
-function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
+function addDocs<T extends Record<string, any>, P extends (string|string[])[]|'any'|undefined>(
     method: string, 
     url: string, 
     parameters: Parameters<T, P>, 
@@ -100,7 +101,7 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
     if (parameters.query_params?.length) {
         let i: any;
         for (i in parameters.query_params) {
-            const query_item: ParameterDetail = parameters.query_params[i];
+            const query_item = parameters.query_params[i];
             
             const example: any = parameters.example ?? {};
 
@@ -116,7 +117,7 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
     if (parameters.path_params?.length) {
         let i: any;
         for (i in parameters.path_params) {
-            const path_item: ParameterDetail = parameters.path_params[i];
+            const path_item = parameters.path_params[i];
             methodDocs.parameters.push({
                 name: path_item.name,
                 description: path_item.description,
@@ -126,7 +127,7 @@ function addDocs<T, P extends (string|string[])[]|'any'|undefined>(
             });
         }
     }
-    if (parameters.body_params.length > 0) {
+    if (parameters.body_params?.length) {
         const contentType = parameters.is_file_upload ? 'multipart/form-data' : 'application/json';
         methodDocs.requestBody = {};
         methodDocs.requestBody.description = data.bodyDesc;
@@ -194,7 +195,7 @@ export class ApiHelper {
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends (string|string[])[]|'any'|undefined>(
+    add<T extends Record<string, any>, P extends (string|string[])[]|'any'|undefined>(
         url: string,
         method: 
         `${'g'|'G'}${'e'|'E'}${'T'|'t'}`
@@ -238,11 +239,11 @@ export class ApiHelper {
                         }
                     }   
                 }
-                let collected_params: { value: any; detail: ParameterDetail }[] = [];
+                let collected_params: { value: any; detail: ParameterDetail<T> }[] = [];
                 let i: any;
                 for (i in parameters.body_params) {
-                    let body_param = parameters.body_params[i];
-                    if (!Object.keys(req.body).includes(body_param.name)) {
+                    let body_param = parameters.body_params![i];
+                    if (!Object.keys(req.body).includes(body_param.name as string)) {
                         if (body_param.required) {
                             return res.json({ ok: false, error: 'missing_body_param', name: body_param.name });
                         }
@@ -252,7 +253,7 @@ export class ApiHelper {
                 }
                 for (i in parameters.header_params) {
                     let header_param = parameters.header_params[i];
-                    if (!Object.keys(req.headers).includes(header_param.name)) {
+                    if (!Object.keys(req.headers).includes(header_param.name as string)) {
                         if (header_param.required) {
                             return res.json({ ok: false, error: 'missing_header_param', name: header_param.name });
                         }
@@ -262,7 +263,7 @@ export class ApiHelper {
                 }
                 for (i in parameters.query_params) {
                     let query_param = parameters.query_params![i];
-                    if (!Object.keys(req.query).includes(query_param.name)) {
+                    if (!Object.keys(req.query).includes(query_param.name as string)) {
                         if (query_param.required) {
                             return res.json({ ok: false, error: 'missing_query_param', name: query_param.name });
                         }
@@ -272,13 +273,13 @@ export class ApiHelper {
                 }
                 for (i in parameters.path_params) {
                     let path_param = parameters.path_params![i];
-                    if (!Object.keys(req.params).includes(path_param.name)) {
+                    if (!Object.keys(req.params).includes(path_param.name as string)) {
                         if (path_param.required) {
                             return res.json({ ok: false, error: 'missing_path_param', name: path_param.name });
                         }
                         continue;
                     }
-                    collected_params.push({ value: req.params[path_param.name], detail: path_param });
+                    collected_params.push({ value: req.params[path_param.name as string], detail: path_param });
                 }
                 for (i in collected_params) {
                     let param = collected_params[i];
