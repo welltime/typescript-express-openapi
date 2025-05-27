@@ -1,31 +1,45 @@
 import Express from 'express';
 import { projects } from './constants';
+declare const validations: {
+    readonly number: typeof validateNumber;
+    readonly string: typeof validateString;
+    readonly boolean: typeof validateBoolean;
+    readonly any: typeof validateAny;
+};
 /**
  * Этот класс призван.
  * 1. Проверять входные аргументы API запроса.
  * 2. Предоставлять аргументы API запроса в виде понятного typescript типа
  * 3. Предоставлять документацию
  */
-interface ParameterDetail {
-    name: string;
-    type: string;
+interface ParameterDetail<T extends Record<string, any> = Record<string, any>> {
+    name: keyof T;
+    type: keyof typeof validations;
     description: string;
     required: boolean;
     enum?: any[];
 }
-interface Parameters<T, P extends (string | string[])[] | 'any' | undefined> {
+interface Parameters<T extends Record<string, any>, P extends (string | string[])[] | 'any' | undefined> {
     example: T;
-    body_params: ParameterDetail[];
+    body_params?: ParameterDetail<T>[];
     is_file_upload?: boolean;
-    path_params?: ParameterDetail[];
-    query_params?: ParameterDetail[];
-    header_params: ParameterDetail[];
+    path_params?: ParameterDetail<T>[];
+    query_params?: ParameterDetail<T>[];
+    header_params: ParameterDetail<T>[];
     permissions_required?: P;
     checks: ((obj: Req<T, P>) => Promise<boolean>)[];
+}
+interface Validation {
+    ok: boolean;
+    value: any;
 }
 interface ExpressReq {
     express_req: Express.Request;
 }
+declare function validateNumber(value: any): Validation;
+declare function validateString(value: any): Validation;
+declare function validateAny(value: any): Validation;
+declare function validateBoolean(value: any): Validation;
 declare type Req<T, P> = P extends undefined ? T & ExpressReq : T & ExpressReq & {
     permissions: string[];
 };
@@ -52,7 +66,7 @@ export declare class ApiHelper {
      * e.g. A & (B|C) & (D|E) -> [A, [B,C], [D,E]]
      * @param callback The function to be executed when the route is called.
      */
-    add<T, P extends (string | string[])[] | 'any' | undefined>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'S' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
+    add<T extends Record<string, any>, P extends (string | string[])[] | 'any' | undefined>(url: string, method: `${'g' | 'G'}${'e' | 'E'}${'T' | 't'}` | `${'P' | 'p'}${'o' | 'O'}${'S' | 's'}${'T' | 't'}` | `${'P' | 'p'}${'a' | 'A'}${'T' | 't'}${'C' | 'c'}${'H' | 'h'}` | `${'P' | 'p'}${'U' | 'u'}${'T' | 't'}` | `${'D' | 'd'}${'E' | 'e'}${'L' | 'l'}${'E' | 'e'}${'T' | 't'}${'E' | 'e'}`, parameters: Parameters<T, P>, docs: {
         description: string;
         summary: string;
         tags: string[];
